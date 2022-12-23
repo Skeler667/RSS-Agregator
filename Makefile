@@ -1,6 +1,7 @@
 #!/usr/bin/env pwsh
 lint:
 	npx eslint  .
+
 fix:
 	npx eslint --fix  .
 build:
