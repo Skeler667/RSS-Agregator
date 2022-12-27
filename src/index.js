@@ -1,4 +1,4 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
-import name from './app.js';
+import app from './app';
 
-name();
+app();

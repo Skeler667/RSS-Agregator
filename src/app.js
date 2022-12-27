@@ -1,71 +1,44 @@
-// import onChange from 'on-change';
-import * as yup from 'yup';
+import { object, string } from 'yup';
 
-const validate = (url, urls) => yup
-  .string()
-  .required()
-  .url('mustBeValid')
-  .notOneOf(urls, 'linkExists')
-  .validate(url);
+import onChange from 'on-change';
+import cb from './view';
 
-// let userSchema = object({
-//   website: string().url().nullable(),
-// });
+// export default () => {
+//   const element = document.getElementById('point');
+//   const obj = new Example(element);
+//   obj.init();
+// };
 
-const messages = {
-  success: 'RSS успешно загружен',
-  loading: 'Идёт загрузка...',
-  mustBeValid: 'Ссылка не содержит валидный URL',
-  linkExists: 'RSS уже загружен',
-};
-
-export default () => {
-  const inputForm = document.querySelector('.rss-form');
-  const feedback = document.querySelector('.feedback');
-  const input = document.querySelector('#url-input');
-  const button = document.querySelector('button');
+const app = () => {
   const state = {
-    form: {
-      errors: '',
-      state: 'filling',
-    },
-    urls: [],
+    repeatUrls: [],
+    inputValue: '',
+    inputState: 'filling',
   };
-  //  ты зво
-  //
-  //
-  //
-  //
-  //
 
-  inputForm.addEventListener('submit', (e) => {
+  const watchedState = onChange(state, () => cb(state));
+  const form = document.querySelector('.rss-form');
+
+  form.addEventListener('submit', (e) => {
     e.preventDefault();
+    const schema = object({
+      website: string().url(),
+    });
     const formData = new FormData(e.target);
     const url = formData.get('url');
-    validate(url, state.urls)
-      .then((link) => {
-        feedback.textContent = messages.loading;
-        feedback.classList.remove('text-danger');
-        feedback.classList.add('text-warning');
-        input.disabled = true;
-        button.disabled = true;
-        // AXIOS.get(link)....
-        return link;
-      })
-      .then((link) => {
-        state.urls.push(link);
-        feedback.textContent = messages.success;
-        feedback.classList.remove('text-warning');
-        feedback.classList.add('text-success');
-        input.disabled = '';
-        button.disabled = '';
-      })
-      .catch((e) => {
-        feedback.textContent = messages[e.message];
-        feedback.classList.remove('text-success');
-        feedback.classList.remove('text-warning');
-        feedback.classList.add('text-danger');
-        input.classList.add('is-invalid');
-      });
+    state.inputValue = url;
+    schema.isValid({ website: state.inputValue }).then((bl) => {
+      if (bl === true && state.repeatUrls.includes(state.inputValue)) {
+        watchedState.inputState = 'exists';
+      }
+      if (bl === true && !state.repeatUrls.includes(state.inputValue)) {
+        watchedState.inputState = 'correct';
+        state.repeatUrls.push(watchedState.inputValue);
+      }
+      if (bl === false) {
+        watchedState.inputState = 'uncorrect';
+      }
+    });
   });
 };
+export default app;
