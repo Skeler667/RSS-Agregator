@@ -1,23 +1,43 @@
-import { object, string } from 'yup';
-
+import { object, string, setLocale,} from 'yup';
+import i18next from 'i18next';
 import onChange from 'on-change';
 import cb from './view';
 
-// export default () => {
-//   const element = document.getElementById('point');
-//   const obj = new Example(element);
-//   obj.init();
-// };
-
 const app = () => {
+
+  i18next.init({
+    lng: 'ru',
+    debug: true,
+    resources: {
+      ru: {
+        translation: {
+          validUrl: "RSS успешно загружен",
+          invalidUrl: "Ссылка должна быть валидным URL",
+          repeatUrl: "RSS уже существует",
+        }
+      }
+    }
+  });
+
   const state = {
     repeatUrls: [],
     inputValue: '',
     inputState: 'filling',
   };
-
-  const watchedState = onChange(state, () => cb(state));
+  const watchedState = onChange(state, () => cb(state, i18next.t));
   const form = document.querySelector('.rss-form');
+
+  setLocale({
+    mixed: {
+      default: 'Não é válido',
+    },
+    number: {
+      min: 'Deve ser maior que ${min}',
+    },
+  });
+  let schema = object({
+    website: string().url(),
+  });
 
   form.addEventListener('submit', (e) => {
     e.preventDefault();
