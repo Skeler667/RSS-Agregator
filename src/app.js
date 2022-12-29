@@ -2,6 +2,9 @@ import { object, string, setLocale,} from 'yup';
 import i18next from 'i18next';
 import onChange from 'on-change';
 import cb from './view';
+import axios from 'axios';
+
+console.log(axios.isCancel('something'));
 
 const app = () => {
 
@@ -54,6 +57,17 @@ const app = () => {
       if (bl === true && !state.repeatUrls.includes(state.inputValue)) {
         watchedState.inputState = 'correct';
         state.repeatUrls.push(watchedState.inputValue);
+        const RSS_URL = `${state.inputValue}`
+
+        console.log(RSS_URL)
+
+            axios.get(`${RSS_URL}`)
+              .then(function (response) {
+                console.log(response);
+              })
+              .catch(function (error) {
+                console.log(error);
+              });
       }
       if (bl === false) {
         watchedState.inputState = 'uncorrect';
