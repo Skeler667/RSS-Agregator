@@ -59,15 +59,20 @@ const app = () => {
         state.repeatUrls.push(watchedState.inputValue);
         const RSS_URL = `${state.inputValue}`
 
-        console.log(RSS_URL)
+        console.log(`${RSS_URL}`)
 
-            axios.get(`${RSS_URL}`)
-              .then(function (response) {
-                console.log(response);
-              })
-              .catch(function (error) {
-                console.log(error);
-              });
+        axios.get(`${RSS_URL}`)
+        .then(function (response) {
+          console.log(response);
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+
+        
+    
+
+
       }
       if (bl === false) {
         watchedState.inputState = 'uncorrect';
