@@ -1,83 +1,89 @@
-import { object, string, setLocale,} from 'yup';
-import i18next from 'i18next';
-import onChange from 'on-change';
-import cb from './view';
-import axios from 'axios';
+import * as yup from "yup";
+import axios from "axios";
+import watch from "./view.js";
+import parserRss from "./renderRss.js";
+import _ from 'lodash';
 
-console.log(axios.isCancel('something'));
+const validate = (url, urls) =>
+  yup
+    .string()
+    .required()
+    .url("mustBeValid")
+    .notOneOf(urls, "linkExists")
+    .validate(url);
 
-const app = () => {
+const buildProxyURL = (url) =>
+  `https://allorigins.hexlet.app/get?disableCache=true&url=${encodeURIComponent(
+    url
+  )}`;
 
-  i18next.init({
-    lng: 'ru',
-    debug: true,
-    resources: {
-      ru: {
-        translation: {
-          validUrl: "RSS успешно загружен",
-          invalidUrl: "Ссылка должна быть валидным URL",
-          repeatUrl: "RSS уже существует",
-        }
-      }
-    }
-  });
+const fetchRSS = (url) => axios.get(buildProxyURL(url));
+
+export default () => {
+  const elements = {
+    form: document.querySelector(".rss-form"),
+    input: document.querySelector("#url-input"),
+    button: document.querySelector('[aria-label="add"]'),
+
+    feedback: document.querySelector(".feedback"),
+    posts: document.querySelector(".posts"),
+
+    feedsContainer: document.querySelector(".feeds"),
+    postsContainer: document.querySelector(".posts"),
+
+    templateFeed: document.querySelector("#template-feeds-wrapper"),
+    templateFeedElement: document.querySelector("#template-feed-element"),
+    templatePost: document.querySelector("#template-posts-wrapper"),
+    templatePostElement: document.querySelector("#template-post-element")
+  };
 
   const state = {
-    repeatUrls: [],
-    inputValue: '',
-    inputState: 'filling',
+    form: {
+      errors: "",
+      state: "filling"
+    },
+    feeds: [],
+    posts: []
   };
-  const watchedState = onChange(state, () => cb(state, i18next.t));
-  const form = document.querySelector('.rss-form');
-
-  setLocale({
-    mixed: {
-      default: 'Não é válido',
-    },
-    number: {
-      min: 'Deve ser maior que ${min}',
-    },
-  });
-  let schema = object({
-    website: string().url(),
-  });
-
-  form.addEventListener('submit', (e) => {
+  const wathcedState = watch(state, elements);
+  elements.form.addEventListener("submit", (e) => {
     e.preventDefault();
-    const schema = object({
-      website: string().url(),
-    });
     const formData = new FormData(e.target);
-    const url = formData.get('url');
-    state.inputValue = url;
-    schema.isValid({ website: state.inputValue }).then((bl) => {
-      if (bl === true && state.repeatUrls.includes(state.inputValue)) {
-        watchedState.inputState = 'exists';
-      }
-      if (bl === true && !state.repeatUrls.includes(state.inputValue)) {
-        watchedState.inputState = 'correct';
-        state.repeatUrls.push(watchedState.inputValue);
-        const RSS_URL = `${state.inputValue}`
+    const url = formData.get("url");
+    const urls = wathcedState.feeds.map((feed) => feed.url);
+    validate(url, urls)
+      .then((link) => {
+        wathcedState.form.state = "sending";
+        wathcedState.form.errors = "";
+        return fetchRSS(link);
+      })
+      .then((response) => {
+        const data = parserRss(response.data.contents);
 
-        console.log(`${RSS_URL}`)
-
-        axios.get(`${RSS_URL}`)
-        .then(function (response) {
-          console.log(response);
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
-
+        const feed = data.feed;
+        const posts = data.posts;
         
-    
 
+        feed.id = _.uniqueId();
+        feed.url = url;
+        wathcedState.feeds.unshift(feed)
 
-      }
-      if (bl === false) {
-        watchedState.inputState = 'uncorrect';
-      }
-    });
+        posts.forEach(post => post.id = _.uniqueId());
+  
+        
+
+        wathcedState.form.state = "success";
+        wathcedState.form.errors = "";
+ 
+        wathcedState.posts = [...posts, ...wathcedState.posts];
+        wathcedState.feeds = [...feed, ...wathcedState.feeds];
+        
+      })
+      .catch((e) => {
+        wathcedState.form.errors = e.message;
+      });
   });
+  elements.posts.addEventListener('click', (e) => {
+    console.log(e.target.dataset.id)
+  })
 };
-export default app;
