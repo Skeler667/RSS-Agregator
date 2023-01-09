@@ -106,11 +106,10 @@ export default () => {
         }
       });
     }
-    const btnClose = modal.querySelector('.btn-close')
     
   })
-  const aboba = document.querySelector('.btn-secondary')
-  aboba.addEventListener('click', () => {
+  const closeModal = document.querySelector('.btn-secondary')
+  closeModal.addEventListener('click', () => {
     document.body.setAttribute('style', '');
     document.body.classList.remove('modal-open');
     modal.classList.remove('show');
