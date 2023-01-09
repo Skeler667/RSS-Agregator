@@ -1,8 +1,8 @@
 lint:
-	npx eslint  .
+ 	npx eslint  . 
 fix:
-	npx eslint --fix  .
+ 	npx eslint --fix  . 
 build:
-	npm run build
+ 	npm run build 
 run:
-	npm run serve
+ 	npm run serve

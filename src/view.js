@@ -1,16 +1,31 @@
 import onChange from "on-change";
-const clear = (elements) => {
-  const { input, feedback, button } = elements;
-  input.classList.remove("is-invalid");
-  feedback.classList.remove("text-danger");
-  feedback.classList.remove("text-success");
-  feedback.classList.remove("text-warning");
-  feedback.textContent = "";
+import clear from "./cleaner";
 
-  input.disabled = "";
-  button.disabled = "";
-  button.textContent = "Добавить";
-};
+const watch = (state, elements) =>
+  onChange(state, (path, value) => {
+    switch (path) {
+      case "form.state": {
+        formHandler(value, elements);
+        break;
+      }
+      case "form.errors": {
+        renderError(value, elements);
+        break;
+      }
+      case "feeds": {
+        renderFeeds(value, elements);
+        break;
+      }
+      case "posts": {
+        renderPosts(value, elements);
+        
+        break;
+      }
+      default:
+        console.log("Unknown state");
+    }
+  });
+
 
 const formHandler = (state, elements) => {
   const { input, feedback, button } = elements;
@@ -34,6 +49,8 @@ const formHandler = (state, elements) => {
     }
 
     case "failed": {
+      clear(elements);
+      input.value = "";
     }
     default:
       break;
@@ -62,7 +79,6 @@ const renderFeeds = (feeds, elements) => {
 
 const renderPosts = (posts, elements) => {
   const { postsContainer, templatePost, templatePostElement } = elements;
-  
   const postsElements = posts.map((post) => {
     const { title, link } = post;
     const postElement = templatePostElement.content.cloneNode(true);
@@ -102,30 +118,5 @@ const renderError = (errType, elements) => {
   elements.feedback.textContent = errMessage;
   elements.feedback.classList.add("text-danger");
 };
-
-const watch = (state, elements) =>
-  onChange(state, (path, value) => {
-    switch (path) {
-      case "form.state": {
-        formHandler(value, elements);
-        break;
-      }
-      case "form.errors": {
-        renderError(value, elements);
-        break;
-      }
-      case "feeds": {
-        renderFeeds(value, elements);
-        break;
-      }
-      case "posts": {
-        renderPosts(value, elements);
-        
-        break;
-      }
-      default:
-        console.log("Unknown state");
-    }
-  });
 
 export default watch;
