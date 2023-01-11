@@ -90,7 +90,6 @@ const renderPosts = (posts, elements) => {
 
     const btn = postElement.querySelector('button')
     btn.setAttribute('data-id', post.id)
-
     return postElement;
   });
 

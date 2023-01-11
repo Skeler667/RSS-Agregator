@@ -3,6 +3,7 @@ import axios from "axios";
 import watch from "./view.js";
 import parserRss from "./renderRss.js";
 import _ from 'lodash';
+import renderRss from "./renderRss.js";
 
 const validate = (url, urls) =>
   yup
@@ -56,6 +57,7 @@ export default () => {
         wathcedState.form.state = "sending";
         wathcedState.form.errors = "";
         return fetchRSS(link);
+        
       })
       .then((response) => {
         const data = parserRss(response.data.contents);
@@ -77,7 +79,33 @@ export default () => {
  
         wathcedState.posts = [...posts, ...wathcedState.posts];
         wathcedState.feeds = [...feed, ...wathcedState.feeds];
+
+        const postsUpdate = (feedId, feedLink, watchedState) => {
+          
+          const inner = () => {
+            
+            fetchRSS(feedLink)
+            .then((link) => {
+              return renderRss(link)
+            })
+            .then((data) => {
+              console.log(data)
+            })
+
+            const postsUrls = watchedState.posts
+              .filter((post) => feedId === Number(post.id))
+              .map(({ link }) => link);
+              const newPosts = parserRss.posts.filter(({ link }) => !postsUrls.includes(link));
+            if (newPosts.length > 0) {
+              addPosts(feedId, newPosts, watchedState);
+            }
+              setTimeout(inner, 1000)
+          }
         
+          setTimeout(inner, 5000)
+        } 
+        postsUpdate(feed.id, feed.url, wathcedState)
+
       })
       .catch((e) => {
         wathcedState.form.errors = e.message;
