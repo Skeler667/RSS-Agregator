@@ -1,9 +1,9 @@
 import * as yup from "yup";
 import axios from "axios";
 import watch from "./view.js";
-import parserRss from "./renderRss.js";
 import _ from 'lodash';
 import renderRss from "./renderRss.js";
+
 
 const validate = (url, urls) =>
   yup
@@ -20,7 +20,22 @@ const buildProxyURL = (url) =>
 
 const fetchRSS = (url) => axios.get(buildProxyURL(url));
 
+
 export default () => {
+
+  const addPosts = (feedId, posts, watchedState) => {
+    const result = posts.map((post) => ({
+      feedId,
+      id: _.uniqueId(),
+      title: post.title,
+      description: post.description,
+      link: post.link,
+    }));
+    watchedState.posts = result.concat(watchedState.posts);
+    console.log(state.posts)
+  };
+
+
   const elements = {
     form: document.querySelector(".rss-form"),
     input: document.querySelector("#url-input"),
@@ -60,7 +75,7 @@ export default () => {
         
       })
       .then((response) => {
-        const data = parserRss(response.data.contents);
+        const data = renderRss(response.data.contents);
 
         const feed = data.feed;
         const posts = data.posts;
@@ -73,38 +88,43 @@ export default () => {
         posts.forEach(post => post.id = _.uniqueId());
   
         
-
+        
         wathcedState.form.state = "success";
         wathcedState.form.errors = "";
- 
+          
+
+
         wathcedState.posts = [...posts, ...wathcedState.posts];
-        wathcedState.feeds = [...feed, ...wathcedState.feeds];
+
 
         const postsUpdate = (feedId, feedLink, watchedState) => {
           
           const inner = () => {
-            
             fetchRSS(feedLink)
             .then((link) => {
-              return renderRss(link)
+              return renderRss(link.data.contents)
             })
-            .then((data) => {
-              console.log(data)
+            .then((a) => {
+              console.log(a)
             })
-
             const postsUrls = watchedState.posts
               .filter((post) => feedId === Number(post.id))
               .map(({ link }) => link);
-              const newPosts = parserRss.posts.filter(({ link }) => !postsUrls.includes(link));
-            if (newPosts.length > 0) {
+
+              const newPosts = data.posts.filter(({ link }) => !postsUrls.includes(link));
+            
               addPosts(feedId, newPosts, watchedState);
-            }
-              setTimeout(inner, 1000)
+            
+              setTimeout(inner, 5000)
           }
         
           setTimeout(inner, 5000)
         } 
+
         postsUpdate(feed.id, feed.url, wathcedState)
+
+        wathcedState.feeds = [...feed, ...wathcedState.feeds];
+        
 
       })
       .catch((e) => {
