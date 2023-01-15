@@ -31,8 +31,9 @@ export default () => {
       description: post.description,
       link: post.link,
     }));
-    watchedState.posts = result.concat(watchedState.posts);
-    console.log(state.posts)
+    console.log(watchedState.posts)
+    watchedState.posts = [...watchedState.posts, ...result] 
+    // watchedState.posts = result.concat(watchedState.posts);
   };
 
 
@@ -96,33 +97,29 @@ export default () => {
 
         wathcedState.posts = [...posts, ...wathcedState.posts];
 
-
-        const postsUpdate = (feedId, feedLink, watchedState) => {
-          
-          const inner = () => {
-            fetchRSS(feedLink)
-            .then((link) => {
-              return renderRss(link.data.contents)
+        const updatePosts = () => {
+          const urls = wathcedState.feeds.map((feed) => feed.url);
+          const promises = urls.map((url) => fetchRSS(url)
+            .then((response) => {
+              const data = renderRss(response.data.contents);
+              const newPosts = data.posts;
+              const newPostsLinks = newPosts.map((post) => post.link)
+              console.log(newPostsLinks)
+              const links = wathcedState.posts.map((post) => post.link);
+              const addedPosts = newPosts.filter((post) => !links.includes(post.link));
+              wathcedState.posts = addedPosts.concat(...wathcedState.posts);
+              
             })
-            .then((a) => {
-              console.log(a)
-            })
-            const postsUrls = watchedState.posts
-              .filter((post) => feedId === Number(post.id))
-              .map(({ link }) => link);
+            .catch((err) => {
+              console.error(err);
+            }));
+      
+          Promise.all(promises).finally(() => setTimeout(() => updatePosts(), 1000));
+        };
 
-              const newPosts = data.posts.filter(({ link }) => !postsUrls.includes(link));
-            
-              addPosts(feedId, newPosts, watchedState);
-            
-              setTimeout(inner, 5000)
-          }
-        
-          setTimeout(inner, 5000)
-        } 
+  
 
-        postsUpdate(feed.id, feed.url, wathcedState)
-
+        updatePosts()
         wathcedState.feeds = [...feed, ...wathcedState.feeds];
         
 
