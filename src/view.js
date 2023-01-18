@@ -1,15 +1,15 @@
 import onChange from "on-change";
 import clear from "./cleaner";
 
-const watch = (state, elements) =>
+const watch = (state, elements, i18nextInstance) =>
   onChange(state, (path, value) => {
     switch (path) {
       case "form.state": {
-        formHandler(value, elements);
+        formHandler(value, elements, i18nextInstance);
         break;
       }
       case "form.errors": {
-        renderError(value, elements);
+        renderError(value, elements, i18nextInstance);
         break;
       }
       case "feeds": {
@@ -17,8 +17,18 @@ const watch = (state, elements) =>
         break;
       }
       case "posts": {
-        renderPosts(value, elements);
+        renderPosts(value, elements, state);
         
+        break;
+      }
+      case "visitedPostsId": {
+       renderVisitedPosts(value, elements) 
+       
+       break;
+      }
+      case "currentPost": {
+        renderModal(value)
+
         break;
       }
       default:
@@ -26,13 +36,12 @@ const watch = (state, elements) =>
     }
   });
 
-
-const formHandler = (state, elements) => {
+const formHandler = (state, elements, i18nextInstance) => {
   const { input, feedback, button } = elements;
   switch (state) {
     case "sending": {
       clear(elements);
-      feedback.textContent = "SENDING";
+      feedback.textContent = i18nextInstance.t(state);
       feedback.classList.add("text-warning");
       input.disabled = "disabled";
       button.disabled = "disabled";
@@ -41,10 +50,9 @@ const formHandler = (state, elements) => {
     }
     case "success": {
       clear(elements);
-      feedback.textContent = "RSS успешно загружен";
+      feedback.textContent = i18nextInstance.t('success');
       feedback.classList.add("text-success");
       input.value = "";
-
       break;
     }
 
@@ -56,6 +64,30 @@ const formHandler = (state, elements) => {
       break;
   }
 };
+const renderModal = (post) => {
+  const {
+    id, title, description, link,
+  } = post;
+  const modal = document.querySelector('.modal');
+  const titleEl = modal.querySelector('.modal-title');
+  const bodyEl = modal.querySelector('.modal-body');
+  const linkEl = modal.querySelector('.full-article');
+
+  titleEl.textContent = title;
+  bodyEl.textContent = description;
+
+  modal.setAttribute('data-id', id);
+  linkEl.setAttribute('href', link);
+
+}
+
+const renderVisitedPosts = (visitedPostsIds) => {
+  visitedPostsIds.forEach(id => {
+    const link = document.querySelector(`a[data-id="${id}"]`)
+    link.classList.remove('fw-normal');
+    link.classList.add('fw-normal', 'link-secondary');
+  });
+}
 
 const renderFeeds = (feeds, elements) => {
   const { feedsContainer, templateFeed, templateFeedElement } = elements;
@@ -77,10 +109,10 @@ const renderFeeds = (feeds, elements) => {
   feedsContainer.append(feedWrapper);
 };
 
-const renderPosts = (posts, elements) => {
+const renderPosts = (posts, elements, state) => {
   const { postsContainer, templatePost, templatePostElement } = elements;
   const postsElements = posts.map((post) => {
-    const { title, link } = post;
+    const { title, link, id } = post;
     const postElement = templatePostElement.content.cloneNode(true);
     const linkEl = postElement.querySelector("a");
 
@@ -90,6 +122,12 @@ const renderPosts = (posts, elements) => {
 
     const btn = postElement.querySelector('button')
     btn.setAttribute('data-id', post.id)
+
+    if (state.visitedPostsId.includes(id)) {
+      linkEl.classList.add('fw-normal', 'link-secondary');
+    } else {
+      linkEl.classList.add('fw-bold');
+    }
     return postElement;
   });
 
@@ -102,6 +140,8 @@ const renderPosts = (posts, elements) => {
   postsContainer.append(postsWrapper);
 };
 
+
+
 const parseError = (err) => {
   const mapping = {
     mustBeValid: "Ссылка должна быть валидным URL",
@@ -112,10 +152,22 @@ const parseError = (err) => {
   return mapping[err];
 };
 
-const renderError = (errType, elements) => {
-  const errMessage = parseError(errType);
-  elements.feedback.textContent = errMessage;
-  elements.feedback.classList.add("text-danger");
+// const renderError = (errType, elements, i18next) => {
+//   const errMessage = parseError(errType);
+  
+//   // elements.feedback.textContent = errType ? i18next.t(errType) : '';
+//   elements.feedback.textContent = errMessage;
+//   elements.feedback.classList.add("text-danger");
+// };
+
+
+const renderError = (errType, elements, i18next) => {
+  console.log(errType)
+  const { input, feedback } = elements;
+  input.classList.add('is-invalid');
+  feedback.classList.add('text-danger');
+  feedback.textContent = errType ? i18next.t(errType) : '';
 };
+
 
 export default watch;
