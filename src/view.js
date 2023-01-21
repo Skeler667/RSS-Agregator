@@ -9,6 +9,7 @@ const watch = (state, elements, i18nextInstance) =>
         break;
       }
       case "form.errors": {
+        
         renderError(value, elements, i18nextInstance);
         break;
       }
@@ -38,10 +39,11 @@ const watch = (state, elements, i18nextInstance) =>
 
 const formHandler = (state, elements, i18nextInstance) => {
   const { input, feedback, button } = elements;
+  
   switch (state) {
     case "sending": {
       clear(elements);
-      feedback.textContent = i18nextInstance.t(state);
+      feedback.textContent = i18nextInstance.t('sending');
       feedback.classList.add("text-warning");
       input.disabled = "disabled";
       button.disabled = "disabled";
@@ -59,6 +61,7 @@ const formHandler = (state, elements, i18nextInstance) => {
     case "failed": {
       clear(elements);
       input.value = "";
+      break;
     }
     default:
       break;
@@ -140,34 +143,10 @@ const renderPosts = (posts, elements, state) => {
   postsContainer.append(postsWrapper);
 };
 
-
-
-const parseError = (err) => {
-  const mapping = {
-    mustBeValid: "Ссылка должна быть валидным URL",
-    linkExists: "RSS уже существует",
-    invalidRSS: "Невалидный RSS"
-  };
-
-  return mapping[err];
-};
-
-// const renderError = (errType, elements, i18next) => {
-//   const errMessage = parseError(errType);
-  
-//   // elements.feedback.textContent = errType ? i18next.t(errType) : '';
-//   elements.feedback.textContent = errMessage;
-//   elements.feedback.classList.add("text-danger");
-// };
-
-
 const renderError = (errType, elements, i18next) => {
-  console.log(errType)
-  const { input, feedback } = elements;
-  input.classList.add('is-invalid');
-  feedback.classList.add('text-danger');
-  feedback.textContent = errType ? i18next.t(errType) : '';
+  clear(elements)
+  elements.feedback.textContent = i18next.t(errType);
+  elements.feedback.classList.add("text-danger");
 };
-
 
 export default watch;

@@ -5,7 +5,6 @@ import _ from 'lodash';
 import renderRss from "./renderRss.js";
 import i18next from "i18next";
 import resources from "./locales/index.js";
-const tittlee = document.querySelector('.title')
 
 
 const i18nextInstance = i18next.createInstance();
@@ -14,9 +13,6 @@ const i18nextInstance = i18next.createInstance();
     debug: false,
     resources,
   });
-
-tittlee.textContent = i18nextInstance.t('title')
-
 
 const validate = (url, urls) =>
   yup
@@ -74,9 +70,9 @@ export default () => {
         wathcedState.form.state = "sending";
         wathcedState.form.errors = "";
         return fetchRSS(link);
-        
       })
       .then((response) => {
+
         const data = renderRss(response.data.contents);
 
         const feed = data.feed;
@@ -93,38 +89,40 @@ export default () => {
         
         wathcedState.form.state = "success";
         wathcedState.form.errors = "";
-          
-
 
         wathcedState.posts = [...posts, ...wathcedState.posts];
 
-        const updatePosts = () => {
+        const loadPosts = () => {
           const urls = wathcedState.feeds.map((feed) => feed.url);
           const promises = urls.map((url) => fetchRSS(url)
             .then((response) => {
+              
               const data = renderRss(response.data.contents);
               const newPosts = data.posts;
-              const newPostsLinks = newPosts.map((post) => post.link)
               const links = wathcedState.posts.map((post) => post.link);
               const addedPosts = newPosts.filter((post) => !links.includes(post.link));
+            
               wathcedState.posts = addedPosts.concat(...wathcedState.posts);
-              
             })
             .catch((err) => {
               console.error(err);
             }));
       
-          Promise.all(promises).finally(() => setTimeout(() => updatePosts(), 1000));
+          Promise.all(promises).finally(() => {
+          
+            setTimeout(() => loadPosts(), 1000)
+          });
         };
 
   
-
-        updatePosts()
-        wathcedState.feeds = [...feed, ...wathcedState.feeds];
+        wathcedState.feeds = [feed, ...wathcedState.feeds];
+        loadPosts()
+        
         
 
       })
       .catch((e) => {
+        console.log(`${e} error in catch after loadPosts`)
         wathcedState.form.errors = e.message;
       });
   });
