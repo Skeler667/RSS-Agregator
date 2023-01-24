@@ -26,6 +26,7 @@ jobs:
       - run: npm ci
       - run: npx eslint
 
+name: GitHub Actions
 
 # Controls when the workflow will run
 on:
