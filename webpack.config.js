@@ -50,4 +50,7 @@ const config = {
   },
 };
 
-module.exports = () => isProduction ? config.mode = 'production' : config.mode = 'development';
+module.exports = () => {
+  isProduction ? config.mode = 'production' : config.mode = 'development';
+  return config;
+};
