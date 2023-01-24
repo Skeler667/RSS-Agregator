@@ -13,7 +13,7 @@ Rss Reader is a service for aggregating RSS feeds that makes it easy to read a v
 
 clone this repository
 ```
-$git clone https://github.com/Skeler667/frontend-project-11
+git clone https://github.com/Skeler667/frontend-project-11
 ```
 
 run the one of these command to install all necessary dependencies
