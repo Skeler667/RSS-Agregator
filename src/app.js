@@ -104,7 +104,7 @@ export default () => {
           });
         };
 
-        wathcedState.feeds = [feed, ...wathcedState.feeds];
+        wathcedState.feeds = [...wathcedState.feeds];
         loadPosts();
       })
       .catch((errors) => {
