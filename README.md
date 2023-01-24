@@ -15,6 +15,7 @@ clone this repository
 ```
 $git clone https://github.com/Skeler667/frontend-project-11
 ```
+
 run the one of these command to install all necessary dependencies
 ```
 npm ci
@@ -29,6 +30,3 @@ npm run serve
 ```
 
 ### [Demonstration](https://frontend-project-11-obg2-skeler667.vercel.app/)
-
-
-[def]: https://github.com/Skeler667/frontend-project-11/actions/workflows/lint.yml
