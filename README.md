@@ -11,19 +11,21 @@ Rss Reader is a service for aggregating RSS feeds that makes it easy to read a v
 
 ###### system requirements: node 14.x version at least
 
-```bash
-#clone this repository on your machine
+clone this repository
+```
 $git clone https://github.com/Skeler667/frontend-project-11
-
-# run the one of these command to install all necessary dependencies
-
-$npm ci
-
-#build application
-$npm run build
-
-#run application on localhost
-$npm run serve
+```
+run the one of these command to install all necessary dependencies
+```
+npm ci
+```
+build application
+```
+npm run build
+```
+run application on localhost
+```
+npm run serve
 ```
 
 ### [Demonstration](https://frontend-project-11-obg2-skeler667.vercel.app/)
