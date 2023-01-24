@@ -2,9 +2,9 @@ import * as yup from 'yup';
 import axios from 'axios';
 import _ from 'lodash';
 import i18next from 'i18next';
-import watch from './view';
-import renderRss from './renderRss';
-import resources from './locales/index';
+import watch from './view.js';
+import renderRss from './renderRss.js';
+import resources from './locales/index.js';
 
 const i18nextInstance = i18next.createInstance();
 i18nextInstance.init({
@@ -109,7 +109,7 @@ export default () => {
       })
       .catch((errors) => {
         console.log(`${errors} error in catch after loadPosts`);
-        wathcedState.form.errors = e.message;
+        wathcedState.form.errors = errors.message;
       });
   });
   const modal = document.querySelector('.modal');

@@ -44,7 +44,6 @@
     "webpack-dev-server": "^4.11.1",
     "workbox-webpack-plugin": "^6.5.4"
   },
-  
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Skeler667/frontend-project-11.git"

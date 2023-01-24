@@ -106,10 +106,10 @@ const renderPosts = (posts, elements, state) => {
   postsContainer.append(postsWrapper);
 };
 
-const renderError = (errType, elements, i18next) => {
+const renderError = (errType, elements, i18nextInstance) => {
   const { feedback } = elements;
   clear(elements);
-  feedback.textContent = i18next.t(errType);
+  feedback.textContent = i18nextInstance.t(errType);
   feedback.classList.add('text-danger');
 };
 
