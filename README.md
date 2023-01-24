@@ -15,7 +15,6 @@ clone this repository
 ```
 git clone https://github.com/Skeler667/frontend-project-11
 ```
-
 run the one of these command to install all necessary dependencies
 ```
 npm ci
