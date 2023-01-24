@@ -1,4 +1,4 @@
-[![CI](https://github.com/Skeler667/frontend-project-11/actions/workflows/demo.yml/badge.svg?event=push)](https://github.com/Skeler667/frontend-project-11/actions/workflows/lint.yml)
+[![CI](https://github.com/Skeler667/frontend-project-11/actions/workflows/demo.yml/badge.svg?event=push)][def]
 [![Maintainability](https://api.codeclimate.com/v1/badges/5df47e83973d08cba453/maintainability)](https://codeclimate.com/github/Skeler667/frontend-project-11/maintainability)
 [![Actions Status](https://github.com/Skeler667/frontend-project-11/workflows/hexlet-check/badge.svg)](https://github.com/Skeler667/frontend-project-11/actions)
 
@@ -30,3 +30,6 @@ $npm run serve
 ```
 
 ### [Demonstration](https://frontend-project-11-obg2-skeler667.vercel.app/)
+
+
+[def]: https://github.com/Skeler667/frontend-project-11/actions/workflows/lint.yml
