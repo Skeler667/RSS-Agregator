@@ -1,7 +1,7 @@
 {
   "name": "@hexlet/code",
   "version": "1.0.0",
-  "description": "My webpack project",
+  "description": "Is a service for aggregating RSS feeds",
   "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -43,17 +43,6 @@
     "webpack-cli": "^5.0.1",
     "webpack-dev-server": "^4.11.1",
     "workbox-webpack-plugin": "^6.5.4"
-  },
-  "bake": {
-    "description": "Scaffold a basic ES6 setup",
-    "scripts": {
-      "start": "echo Starting generation of default template",
-      "prestart": "echo prestart",
-      "poststart": "echo poststart",
-      "install": "npm install --loglevel warn --cache-min Infinity",
-      "preinstall": "echo Installing dependencies ...",
-      "postinstall": "npm ls --depth 0"
-    }
   },
   
   "repository": {
