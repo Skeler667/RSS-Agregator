@@ -1,55 +1,38 @@
-# This is a basic workflow to help you get started with Actions
 
-name: CI
+# Name of workflow
+name: Linter
 
+# Trigger the workflow on push or pull request
 on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-
-
-  workflow_dispatch:
-
+  - push
+  - pull_request
 
 jobs:
-
   build:
 
+    # The type of machine to run the job on
     runs-on: ubuntu-latest
 
+    strategy:
+      # Node versions list
+      matrix:
+        node-version: [14.x]
 
     steps:
+      # Check-out repository under GitHub workspace
+      # https://github.com/actions/checkout
       - uses: actions/checkout@v3
-      
-      - run: npm ci
-      - run: npx eslint
-
-name: GitHub Actions
-
-# Controls when the workflow will run
-on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-
-
-  workflow_dispatch:
-
-
-jobs:
-
-  build:
-
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-
-      # Runs a set of commands using the runners shell
-      - name: Run a linter
+        # Step's name
+      - name: Use Node.js ${{ matrix.node-version }}
+        # Configures the node version used on GitHub-hosted runners
+        # https://github.com/actions/setup-node
+        uses: actions/setup-node@v1
+        # The Node.js version to configure
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: install ci
+        # Install project
         run: npm ci
+      - name: Run linter
+        # Run Linter
         run: npx eslint
