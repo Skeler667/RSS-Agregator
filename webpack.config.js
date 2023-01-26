@@ -1,15 +1,15 @@
-const path = require('path');
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
+import * as path from 'path';
+import MiniCssExtractPlugin from 'mini-css-extract-plugin';
+import HtmlWebpackPlugin from 'html-webpack-plugin';
 
-const isProduction = process.env.NODE_ENV == 'production';
+const mode = process.env.NODE_ENV;
 
 const stylesHandler = MiniCssExtractPlugin.loader;
 
 const config = {
   entry: './src/index.js',
   output: {
-    path: path.resolve(__dirname, 'dist'),
+    path: path.resolve('dist'),
   },
   devServer: {
     open: true,
@@ -50,7 +50,8 @@ const config = {
   },
 };
 
-module.exports = () => {
-  isProduction ? config.mode = 'production' : config.mode = 'development';
-  return config;
+export default {
+  ...config,
+  mode,
 };
+
