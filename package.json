@@ -1,8 +1,8 @@
 {
+  "type": "module",
   "name": "@hexlet/code",
   "version": "1.0.0",
   "description": "Is a service for aggregating RSS feeds",
-  "type": "module",
   "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
