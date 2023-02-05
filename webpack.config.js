@@ -25,11 +25,19 @@ const config = {
     // Add your plugins here
     // Learn more about plugins from https://webpack.js.org/configuration/plugins/
   ],
+  // module: {
+  //   rules: [
+  //     {
+  //       test: /\.css$/,
+  //       use: ['style-loader', 'css-loader']
+  //     }
+  //   ]
+  // }
   module: {
     rules: [
       {
-        test: /\.(js|jsx)$/i,
-        loader: 'babel-loader',
+        test: /\.css$/,
+        use: ['style-loader', 'css-loader']
       },
       {
         test: /\.css$/i,
