@@ -2,9 +2,9 @@ import * as yup from 'yup';
 import axios from 'axios';
 import _ from 'lodash';
 import i18next from 'i18next';
-import watch from './view.js';
-import renderRss from './renderRss.js';
-import resources from './locales/index.js';
+import watch from './view';
+import renderRss from './renderRss';
+import resources from './locales/index';
 
 const i18nextInstance = i18next.createInstance();
 i18nextInstance.init({
@@ -77,7 +77,7 @@ export default () => {
         feed.url = url;
         wathcedState.feeds.unshift(feed);
 
-        posts.forEach((post) => { post.id = _.uniqueId(); });
+        posts.forEach((item) => { item.id = _.uniqueId(); });
 
         wathcedState.form.state = 'success';
         wathcedState.form.errors = '';

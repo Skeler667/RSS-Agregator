@@ -1,5 +1,5 @@
 import onChange from 'on-change';
-import clear from './cleaner.js';
+import clear from './cleaner';
 
 const formHandler = (state, elements, i18nextInstance) => {
   const { input, feedback, button } = elements;
