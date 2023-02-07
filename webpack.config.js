@@ -8,10 +8,10 @@ const stylesHandler = MiniCssExtractPlugin.loader;
 
 const config = {
   
-  entry: './src/index.js',
-  output: {
-    path: path.resolve('dist'),
-  },
+  // entry: './src/index.js',
+  // output: {
+  //   path: path.resolve('dist'),
+  // },
   devServer: {
     open: true,
     host: 'localhost',
