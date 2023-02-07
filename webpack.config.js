@@ -16,6 +16,9 @@ const config = {
     open: true,
     host: 'localhost',
   },
+  output: {
+    path: path.resolve('public'),
+  },
   plugins: [
     new MiniCssExtractPlugin({
       filename: '[name].css',
