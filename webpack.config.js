@@ -35,16 +35,16 @@ const config = {
   // }
   module: {
     rules: [
+      // {
+      //   test: /\.css$/,
+      //   use: ['style-loader', 'css-loader']
+      // },
       {
         test: /\.css$/,
-        use: ['style-loader', 'css-loader']
-      },
-      {
-        test: /\.css$/i,
         use: [stylesHandler, 'css-loader'],
       },
       {
-        test: /\.s[ac]ss$/i,
+        test: /\.s[ac]ss$/,
         use: [stylesHandler, 'css-loader', 'sass-loader'],
       },
       {
