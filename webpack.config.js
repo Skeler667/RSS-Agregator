@@ -7,6 +7,7 @@ const mode = process.env.NODE_ENV;
 const stylesHandler = MiniCssExtractPlugin.loader;
 
 const config = {
+  
   entry: './src/index.js',
   output: {
     path: path.resolve('dist'),
@@ -16,11 +17,12 @@ const config = {
     host: 'localhost',
   },
   plugins: [
+    new MiniCssExtractPlugin({
+      filename: '[name].css',
+    }),
     new HtmlWebpackPlugin({
       template: 'index.html',
     }),
-
-    new MiniCssExtractPlugin(),
 
     // Add your plugins here
     // Learn more about plugins from https://webpack.js.org/configuration/plugins/
@@ -33,6 +35,8 @@ const config = {
   //     }
   //   ]
   // }
+
+  
   module: {
     rules: [
       // {
