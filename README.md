@@ -28,4 +28,4 @@ run application on localhost
 npm run serve
 ```
 
-### [Demonstration](https://frontend-project-11-obg2-skeler667.vercel.app/)
+### [Demonstration](https://frontend-project-3-fb4qxhkze-skeler667.vercel.app/)
