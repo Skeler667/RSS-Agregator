@@ -96,7 +96,7 @@ export default () => {
               wathcedState.posts = addedPosts.concat(...wathcedState.posts);
             })
             .catch((err) => {
-              console.error(err);
+              console.log(err);
             }));
 
           Promise.all(promises).finally(() => {

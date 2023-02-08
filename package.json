@@ -13,14 +13,7 @@
     "serve": "webpack serve"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.12",
-    "@babel/preset-env": "^7.20.2",
     "@webpack-cli/generators": "^3.0.1",
-    "babel-cli": "^6.26.0",
-    "babel-loader": "^9.1.2",
-    "babel-plugin-add-module-exports": "^1.0.4",
-    "babel-plugin-transform-regenerator": "^6.26.0",
-    "babel-preset-es2015": "^6.24.1",
     "bake-cli": "^0.6.0",
     "css-loader": "^6.7.3",
     "eslint": "^8.30.0",
