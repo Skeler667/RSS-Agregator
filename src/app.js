@@ -3,21 +3,17 @@ import axios from 'axios';
 import _ from 'lodash';
 import i18next from 'i18next';
 import watch from './view.js';
-import renderRss from './renderRss.js';
+import parserRss from './parserRss.js';
 import resources from './locales/index.js';
 
-const validate = (url, urls) => yup
-  .string()
-  .required()
-  .url('mustBeValid')
-  .notOneOf(urls, 'linkExists')
-  .validate(url);
+const addProxy = (url) => {
+  const urlWithProxy = new URL('/get', 'https://allorigins.hexlet.app');
+  urlWithProxy.searchParams.set('url', url);
+  urlWithProxy.searchParams.set('disableCache', 'true');
+  return urlWithProxy.toString();
+};
 
-const baseUrl = 'https://allorigins.hexlet.app/get?disableCache=true&url=';
-
-const buildProxyURL = (url) => new URL(url, baseUrl);
-
-const fetchRSS = (url) => axios.get(buildProxyURL(url));
+const fetchRSS = (url) => axios.get(addProxy(url));
 
 export default () => {
 
@@ -57,19 +53,33 @@ export default () => {
     posts: [],
   };
   const wathcedState = watch(state, elements, i18nextInstance);
+
+  const validate = (url, feeds) => {
+    
+    const urls = feeds.map((feed) => feed.url);
+    console.log(urls)
+    yup
+    .string()
+    .required()
+    .url('mustBeValid')
+    .notOneOf(urls, 'linkExists')
+    .validate(url);
+  }
+
   elements.form.addEventListener('submit', (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
     const url = formData.get('url');
-    const urls = wathcedState.feeds.map((feed) => feed.url);
-    validate(url, urls)
+    const feeds = state.feeds;
+    validate(url, feeds)
+    //  console.log(validate(url, wathcedState))
       .then((link) => {
         wathcedState.form.state = 'sending';
         wathcedState.form.errors = '';
         return fetchRSS(link);
       })
       .then((response) => {
-        const data = renderRss(response.data.contents);
+        const data = parserRss(response.data.contents);
 
         const { feed } = data;
         const { posts } = data;
