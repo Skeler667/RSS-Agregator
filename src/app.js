@@ -6,13 +6,6 @@ import watch from './view.js';
 import renderRss from './renderRss.js';
 import resources from './locales/index.js';
 
-const i18nextInstance = i18next.createInstance();
-i18nextInstance.init({
-  lng: 'ru',
-  debug: false,
-  resources,
-});
-
 const validate = (url, urls) => yup
   .string()
   .required()
@@ -20,13 +13,21 @@ const validate = (url, urls) => yup
   .notOneOf(urls, 'linkExists')
   .validate(url);
 
-const buildProxyURL = (url) => `https://allorigins.hexlet.app/get?disableCache=true&url=${encodeURIComponent(
-  url,
-)}`;
+const baseUrl = 'https://allorigins.hexlet.app/get?disableCache=true&url=';
+
+const buildProxyURL = (url) => new URL(url, baseUrl);
 
 const fetchRSS = (url) => axios.get(buildProxyURL(url));
 
 export default () => {
+
+  const i18nextInstance = i18next.createInstance();
+    i18nextInstance.init({
+    lng: 'ru',
+    debug: false,
+    resources,
+});
+
   const elements = {
     form: document.querySelector('.rss-form'),
     input: document.querySelector('#url-input'),
