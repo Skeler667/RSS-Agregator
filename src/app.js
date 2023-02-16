@@ -55,22 +55,20 @@ export default () => {
   const wathcedState = watch(state, elements, i18nextInstance);
 
   const validate = (url, feeds) => {
-    
     const urls = feeds.map((feed) => feed.url);
-    console.log(urls)
+    (
     yup
     .string()
     .required()
     .url('mustBeValid')
     .notOneOf(urls, 'linkExists')
-    .validate(url);
-  }
+    .validate(url))};
 
   elements.form.addEventListener('submit', (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
     const url = formData.get('url');
-    const feeds = state.feeds;
+    const feeds = wathcedState.feeds;
     validate(url, feeds)
     //  console.log(validate(url, wathcedState))
       .then((link) => {
@@ -99,7 +97,7 @@ export default () => {
           const urlsFeed = wathcedState.feeds.map((feedEl) => feedEl.url);
           const promises = urlsFeed.map((urlEl) => fetchRSS(urlEl)
             .then((dataUrls) => {
-              const data = renderRss(dataUrls.data.contents);
+              const data = parserRss(dataUrls.data.contents);
               const newPosts = data.posts;
               const links = wathcedState.posts.map((post) => post.link);
               const addedPosts = newPosts.filter((post) => !links.includes(post.link));
