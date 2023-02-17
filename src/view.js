@@ -21,12 +21,6 @@ const formHandler = (state, elements, i18nextInstance) => {
       input.value = '';
       break;
     }
-
-    case 'failed': {
-      clear(elements);
-      input.value = '';
-      break;
-    }
     default:
       break;
   }
@@ -107,8 +101,9 @@ const renderPosts = (posts, elements, state) => {
 };
 
 const renderError = (errType, elements, i18nextInstance) => {
-  const { feedback } = elements;
+  const { feedback, input } = elements;
   clear(elements);
+  input.classList.add('is-invalid')
   feedback.textContent = i18nextInstance.t(errType);
   feedback.classList.add('text-danger');
 };

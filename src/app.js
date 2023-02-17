@@ -13,7 +13,7 @@ const addProxy = (url) => {
   return urlWithProxy.toString();
 };
 
-const fetchRSS = (url) => axios.get(addProxy(url));
+const fetchRSS = (url) => axios.get(addProxy(url),  10000);
 
 export default () => {
 
@@ -56,13 +56,13 @@ export default () => {
 
   const validate = (url, feeds) => {
     const urls = feeds.map((feed) => feed.url);
-    (
-    yup
+    
+   return yup
     .string()
-    .required()
     .url('mustBeValid')
     .notOneOf(urls, 'linkExists')
-    .validate(url))};
+    .required()
+    .validate(url)};
 
   elements.form.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -70,23 +70,25 @@ export default () => {
     const url = formData.get('url');
     const feeds = wathcedState.feeds;
     validate(url, feeds)
-    //  console.log(validate(url, wathcedState))
       .then((link) => {
         wathcedState.form.state = 'sending';
         wathcedState.form.errors = '';
-        return fetchRSS(link);
+        return link;
+      })
+      .then((validatedLink) => {
+          return fetchRSS(validatedLink)
       })
       .then((response) => {
         const data = parserRss(response.data.contents);
+        // wathcedState.feeds.forEach((feed) => { feed.id = _.uniqueId(), feed.url = url })  8 правка
+       
 
-        const { feed } = data;
-        const { posts } = data;
+        data.feed.id = _.uniqueId();
+        data.feed.url = url;
 
-        feed.id = _.uniqueId();
-        feed.url = url;
-        wathcedState.feeds.unshift(feed);
+        wathcedState.feeds.unshift(data.feed);
 
-        posts.forEach((item) => { item.id = _.uniqueId(); });
+        const posts = data.posts.map((item) => ({ ...item, id : _.uniqueId() }));
 
         wathcedState.form.state = 'success';
         wathcedState.form.errors = '';
@@ -105,7 +107,8 @@ export default () => {
               wathcedState.posts = addedPosts.concat(...wathcedState.posts);
             })
             .catch((err) => {
-              console.log(err);
+              wathcedState.form.state = 'failed'
+              console.log(err.message)
             }));
 
           Promise.all(promises).finally(() => {
