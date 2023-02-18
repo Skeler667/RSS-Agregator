@@ -14,7 +14,7 @@ const addProxy = (url) => {
   return urlWithProxy.toString();
 };
 
-const fetchRSS = (url) => axios.get(addProxy(url));
+const fetchRSS = (url) => axios.get(addProxy(url), { delay: 10000});
 
 export default () => {
 
