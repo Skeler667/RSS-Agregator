@@ -7,13 +7,14 @@ import parserRss from './parserRss.js';
 import resources from './locales/index.js';
 
 const addProxy = (url) => {
+  console.log('aboba')
   const urlWithProxy = new URL('/get', 'https://allorigins.hexlet.app');
   urlWithProxy.searchParams.set('url', url);
   urlWithProxy.searchParams.set('disableCache', 'true');
   return urlWithProxy.toString();
 };
 
-const fetchRSS = (url) => axios.get(addProxy(url),  10000);
+const fetchRSS = (url) => axios.get(addProxy(url));
 
 export default () => {
 
