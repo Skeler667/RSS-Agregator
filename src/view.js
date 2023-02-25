@@ -135,7 +135,7 @@ const watch = (state, elements, i18nextInstance) => onChange(state, (path, value
       break;
     }
     default:
-      break
+      break;
   }
 });
 

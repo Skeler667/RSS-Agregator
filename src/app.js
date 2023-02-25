@@ -16,24 +16,23 @@ const addProxy = (url) => {
 const fetchRSS = (url) => axios.get(addProxy(url), { delay: 10000 });
 
 export default () => {
-
   const elements = {
     form: document.querySelector('.rss-form'),
     input: document.querySelector('#url-input'),
     button: document.querySelector('[aria-label="add"]'),
-  
+
     feedback: document.querySelector('.feedback'),
     posts: document.querySelector('.posts'),
-  
+
     feedsContainer: document.querySelector('.feeds'),
     postsContainer: document.querySelector('.posts'),
-  
+
     templateFeed: document.querySelector('#template-feeds-wrapper'),
     templateFeedElement: document.querySelector('#template-feed-element'),
     templatePost: document.querySelector('#template-posts-wrapper'),
     templatePostElement: document.querySelector('#template-post-element'),
   };
-  
+
   const state = {
     form: {
       errors: '',
@@ -73,7 +72,7 @@ export default () => {
     const { feeds } = wathcedState;
     validate(url, feeds)
       .then((link) => {
-        wathcedState.form = { state: 'sending', errors: ''}
+        wathcedState.form = { state: 'sending', errors: '' };
         return link;
       })
       .then((validatedLink) => fetchRSS(validatedLink))
