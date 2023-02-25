@@ -103,7 +103,7 @@ const renderPosts = (posts, elements, state) => {
 const renderError = (errType, elements, i18nextInstance) => {
   const { feedback, input } = elements;
   clear(elements);
-  input.classList.add('is-invalid')
+  input.classList.add('is-invalid');
   feedback.textContent = i18nextInstance.t(errType);
   feedback.classList.add('text-danger');
 };
@@ -124,21 +124,18 @@ const watch = (state, elements, i18nextInstance) => onChange(state, (path, value
     }
     case 'posts': {
       renderPosts(value, elements, state);
-
       break;
     }
     case 'visitedPostsId': {
       renderVisitedPosts(value, elements);
-
       break;
     }
     case 'currentPost': {
       renderModal(value);
-
       break;
     }
     default:
-      console.log('Unknown state');
+      break
   }
 });
 
