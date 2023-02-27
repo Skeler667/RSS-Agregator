@@ -33,10 +33,14 @@ export default () => {
     templatePostElement: document.querySelector('#template-post-element'),
   };
 
-  const state = {
+  const initialState = {
     form: {
       errors: '',
-      state: 'filling',
+      status: 'filling',
+    },
+    processLoading: {
+      errors: '',
+      status: 'idle',
     },
     lang: 'ru',
     currentPost: null,
@@ -50,106 +54,119 @@ export default () => {
     lng: 'ru',
     debug: false,
     resources,
-  });
+  }).then(() => {
+    const wathcedState = watch(initialState, elements, i18nextInstance);
 
-  const wathcedState = watch(state, elements, i18nextInstance);
+    const validate = (url, feeds) => {
+      const urls = feeds.map((feed) => feed.url);
 
-  const validate = (url, feeds) => {
-    const urls = feeds.map((feed) => feed.url);
+      return yup
+        .string()
+        .url('mustBeValid')
+        .notOneOf(urls, 'linkExists')
+        .required()
+        .validate(url);
+    };
 
-    return yup
-      .string()
-      .url('mustBeValid')
-      .notOneOf(urls, 'linkExists')
-      .required()
-      .validate(url);
-  };
+    elements.form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const url = formData.get('url');
+      const { feeds } = wathcedState;
+      validate(url, feeds)
+        .then((link) => {
+          wathcedState.processLoading = { status: 'sending', errors: '' };
+          wathcedState.form = { status: 'sending', errors: '' };
+          return link;
+        })
+        .then((validatedLink) => fetchRSS(validatedLink))
 
-  elements.form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-    const url = formData.get('url');
-    const { feeds } = wathcedState;
-    validate(url, feeds)
-      .then((link) => {
-        wathcedState.form = { state: 'sending', errors: '' };
-        return link;
-      })
-      .then((validatedLink) => fetchRSS(validatedLink))
-      .then((response) => {
-        const data = parseRSS(response.data.contents);
+        .then((response) => {
+          const data = parseRSS(response.data.contents);
 
-        data.feed.id = _.uniqueId();
-        data.feed.url = url;
+          data.feed.id = _.uniqueId();
+          data.feed.url = url;
 
-        wathcedState.feeds.unshift(data.feed);
+          wathcedState.feeds.unshift(data.feed);
 
-        const posts = data.posts.map((item) => ({ ...item, id: _.uniqueId() }));
+          const posts = data.posts.map((item) => ({ ...item, id: _.uniqueId() }));
 
-        wathcedState.form.state = 'success';
-        wathcedState.form.errors = '';
+          wathcedState.form = { status: 'success', errors: '' };
 
-        wathcedState.posts = [...posts, ...wathcedState.posts];
+          wathcedState.processLoading.status = 'success';
+          wathcedState.processLoading.errors = '';
 
-        const loadPosts = () => {
-          const urlsFeed = wathcedState.feeds.map((feedEl) => feedEl.url);
-          const promises = urlsFeed.map((urlEl) => fetchRSS(urlEl)
-            .then((dataUrls) => {
-              const dataParse = parseRSS(dataUrls.data.contents);
-              const newPosts = dataParse.posts;
-              const links = wathcedState.posts.map((post) => post.link);
-              const addedPosts = newPosts.filter((post) => !links.includes(post.link));
+          wathcedState.posts = [...posts, ...wathcedState.posts];
 
-              wathcedState.posts = addedPosts.concat(...wathcedState.posts);
-            })
-            .catch((err) => {
-              wathcedState.form.state = 'failed';
-              console.log(err.message);
-            }));
+          const loadPosts = () => {
+            const urlsFeed = wathcedState.feeds.map((feedEl) => feedEl.url);
+            const promises = urlsFeed.map((urlEl) => fetchRSS(urlEl)
+              .then((dataUrls) => {
+                const dataParse = parseRSS(dataUrls.data.contents);
+                const newPosts = dataParse.posts;
+                const links = wathcedState.posts.map((post) => post.link);
+                const addedPosts = newPosts.filter((post) => !links.includes(post.link));
 
-          Promise.all(promises).finally(() => {
-            setTimeout(() => loadPosts(), 1000);
-          });
-        };
+                wathcedState.posts = addedPosts.concat(...wathcedState.posts);
+              })
+              .catch((err) => {
+                switch (err.name) {
+                  case 'ParseError':
+                    wathcedState.processLoading.status = 'failed';
+                    wathcedState.processLoading.errors = err.message;
+                    break;
+                  case 'ValidationError':
+                    wathcedState.form.errors = err.message;
+                    wathcedState.form.status = 'failed';
+                    break;
+                  default: console.log('xz');
+                }
+              }));
 
-        wathcedState.feeds = [...wathcedState.feeds];
-        loadPosts();
-      })
-      .catch((errors) => {
-        console.log(`${errors} error in catch after loadPosts`);
-        wathcedState.form.errors = errors.message;
-      });
-  });
-  const modal = document.querySelector('.modal');
-  elements.posts.addEventListener('click', (e) => {
-    if (e.target.hasAttribute('data-id')) {
-      wathcedState.currentPost = e.target.dataset.id;
-      wathcedState.visitedPostsId.push(e.target.dataset.id);
-    }
+            Promise.all(promises).finally(() => {
+              setTimeout(() => loadPosts(), 5000);
+            });
+          };
 
-    if (e.target.tagName === 'BUTTON') {
-      const { id } = e.target.dataset;
-      wathcedState.currentPost = wathcedState.posts.find(
-        (post) => post.id === id,
-      );
-    }
-  });
-  const closeModal = document.querySelector('.btn-secondary');
-  closeModal.addEventListener('click', () => {
-    document.body.setAttribute('style', '');
-    document.body.classList.remove('modal-open');
-    modal.classList.remove('show');
-    modal.removeAttribute('aria-modal');
-    modal.setAttribute('aria-hidden', 'true');
-    modal.setAttribute('style', 'display: none;');
-  });
-  const btnClose = modal.querySelector('.btn-close');
-  btnClose.addEventListener('click', () => {
-    document.body.setAttribute('style', '');
-    document.body.classList.remove('modal-open');
-    modal.classList.remove('show');
-    modal.removeAttribute('aria-modal');
-    modal.setAttribute('aria-hidden', 'true');
-    modal.setAttribute('style', 'display: none;');
+          wathcedState.feeds = [...wathcedState.feeds];
+          loadPosts();
+        })
+        .catch((errors) => {
+          console.log(`${errors} error in catch after loadPosts`);
+          wathcedState.form.errors = errors.message;
+        });
+    });
+    const modal = document.querySelector('.modal');
+    elements.posts.addEventListener('click', (e) => {
+      if (e.target.hasAttribute('data-id')) {
+        wathcedState.currentPost = e.target.dataset.id;
+        wathcedState.visitedPostsId.push(e.target.dataset.id);
+      }
+
+      if (e.target.tagName === 'BUTTON') {
+        const { id } = e.target.dataset;
+        wathcedState.currentPost = wathcedState.posts.find(
+          (post) => post.id === id,
+        );
+      }
+    });
+    const closeModal = document.querySelector('.btn-secondary');
+    closeModal.addEventListener('click', () => {
+      document.body.setAttribute('style', '');
+      document.body.classList.remove('modal-open');
+      modal.classList.remove('show');
+      modal.removeAttribute('aria-modal');
+      modal.setAttribute('aria-hidden', 'true');
+      modal.setAttribute('style', 'display: none;');
+    });
+    const btnClose = modal.querySelector('.btn-close');
+    btnClose.addEventListener('click', () => {
+      document.body.setAttribute('style', '');
+      document.body.classList.remove('modal-open');
+      modal.classList.remove('show');
+      modal.removeAttribute('aria-modal');
+      modal.setAttribute('aria-hidden', 'true');
+      modal.setAttribute('style', 'display: none;');
+    });
   });
 };
