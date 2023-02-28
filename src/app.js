@@ -108,13 +108,13 @@ export default () => {
                 wathcedState.posts = addedPosts.concat(...wathcedState.posts);
               })
               .catch((err) => {
-                console.log(err.name)
+                console.log(err.name);
                 switch (err.name) {
                   case 'ParseError':
-                    wathcedState.processLoading = { status: 'failed', errors: err.message}
+                    wathcedState.processLoading = { status: 'failed', errors: err.message };
                     break;
                   case 'ValidationError':
-                    wathcedState.form = { status: 'failed', errors: err.message }
+                    wathcedState.form = { status: 'failed', errors: err.message };
                     break;
                   default: console.log('xz');
                 }
@@ -132,10 +132,10 @@ export default () => {
           console.log(`${errors} error in catch after loadPosts`);
           switch (errors.name) {
             case 'ParseError':
-              wathcedState.processLoading = { status: 'failed', errors: errors.message}
+              wathcedState.processLoading = { status: 'failed', errors: errors.message };
               break;
             case 'ValidationError':
-              wathcedState.form = { status: 'failed', errors: errors.message }
+              wathcedState.form = { status: 'failed', errors: errors.message };
               break;
             default: console.log('xz');
           }

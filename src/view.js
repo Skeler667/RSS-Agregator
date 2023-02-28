@@ -101,32 +101,32 @@ const handleForm = (state, elements, i18nextInstance) => {
     default:
       break;
   }
-}
+};
 
 const handleProcess = (state, elements, i18nextInstance) => {
   const { status, errors } = state;
   const { input, button, feedback } = elements;
-  switch(status) {
+  switch (status) {
     case 'success':
-      input.focus()
+      input.focus();
       feedback.textContent = i18nextInstance.t('success');
       feedback.classList.add('text-success');
-    break;
+      break;
     case 'sending':
       clear(elements);
-        feedback.textContent = i18nextInstance.t('sending');
-        feedback.classList.add('text-warning');
-        input.disabled = 'disabled';
-        button.disabled = 'disabled';
-        button.textContent = 'loading...';
-    break;
+      feedback.textContent = i18nextInstance.t('sending');
+      feedback.classList.add('text-warning');
+      input.disabled = 'disabled';
+      button.disabled = 'disabled';
+      button.textContent = 'loading...';
+      break;
     case 'failed':
       renderError(errors, elements, i18nextInstance);
       break;
     default:
       break;
   }
-}
+};
 
 const watch = (state, elements, i18nextInstance) => onChange(state, (path, value) => {
   switch (path) {
