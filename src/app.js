@@ -76,7 +76,7 @@ export default () => {
       validate(url, feeds)
         .then((link) => {
           wathcedState.processLoading = { status: 'sending', errors: '' };
-          wathcedState.form = { status: 'sending', errors: '' };
+          // wathcedState.form = { status: 'sending', errors: '' }; -------------?
           return link;
         })
         .then((validatedLink) => fetchRSS(validatedLink))
@@ -92,9 +92,7 @@ export default () => {
           const posts = data.posts.map((item) => ({ ...item, id: _.uniqueId() }));
 
           wathcedState.form = { status: 'success', errors: '' };
-
-          wathcedState.processLoading.status = 'success';
-          wathcedState.processLoading.errors = '';
+          wathcedState.processLoading = { status: 'success', errors: '' };
 
           wathcedState.posts = [...posts, ...wathcedState.posts];
 
@@ -110,14 +108,13 @@ export default () => {
                 wathcedState.posts = addedPosts.concat(...wathcedState.posts);
               })
               .catch((err) => {
+                console.log(err.name)
                 switch (err.name) {
                   case 'ParseError':
-                    wathcedState.processLoading.status = 'failed';
-                    wathcedState.processLoading.errors = err.message;
+                    wathcedState.processLoading = { status: 'failed', errors: err.message}
                     break;
                   case 'ValidationError':
-                    wathcedState.form.errors = err.message;
-                    wathcedState.form.status = 'failed';
+                    wathcedState.form = { status: 'failed', errors: err.message }
                     break;
                   default: console.log('xz');
                 }
@@ -133,7 +130,15 @@ export default () => {
         })
         .catch((errors) => {
           console.log(`${errors} error in catch after loadPosts`);
-          wathcedState.form.errors = errors.message;
+          switch (errors.name) {
+            case 'ParseError':
+              wathcedState.processLoading = { status: 'failed', errors: errors.message}
+              break;
+            case 'ValidationError':
+              wathcedState.form = { status: 'failed', errors: errors.message }
+              break;
+            default: console.log('xz');
+          }
         });
     });
     const modal = document.querySelector('.modal');
