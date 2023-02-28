@@ -114,7 +114,7 @@ export default () => {
               }));
 
             Promise.all(promises).finally(() => {
-              setTimeout(() => loadPosts(), 5000);
+              setTimeout(() => loadPosts(), 4999);
             });
           };
 
