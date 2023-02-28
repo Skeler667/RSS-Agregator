@@ -97,7 +97,9 @@ export default () => {
           wathcedState.posts = [...posts, ...wathcedState.posts];
 
           const loadPosts = () => {
+            
             const urlsFeed = wathcedState.feeds.map((feedEl) => feedEl.url);
+            console.log(urlsFeed)
             const promises = urlsFeed.map((urlEl) => fetchRSS(urlEl)
               .then((dataUrls) => {
                 const dataParse = parseRSS(dataUrls.data.contents);
@@ -109,15 +111,6 @@ export default () => {
               })
               .catch((err) => {
                 console.log(err.name);
-                switch (err.name) {
-                  case 'ParseError':
-                    wathcedState.processLoading = { status: 'failed', errors: err.message };
-                    break;
-                  case 'ValidationError':
-                    wathcedState.form = { status: 'failed', errors: err.message };
-                    break;
-                  default: console.log('xz');
-                }
               }));
 
             Promise.all(promises).finally(() => {
