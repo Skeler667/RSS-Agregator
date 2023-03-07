@@ -97,9 +97,8 @@ export default () => {
           wathcedState.posts = [...posts, ...wathcedState.posts];
 
           const loadPosts = () => {
-            
             const urlsFeed = wathcedState.feeds.map((feedEl) => feedEl.url);
-            console.log(urlsFeed)
+            console.log(urlsFeed);
             const promises = urlsFeed.map((urlEl) => fetchRSS(urlEl)
               .then((dataUrls) => {
                 const dataParse = parseRSS(dataUrls.data.contents);
