@@ -42,7 +42,6 @@ export default () => {
       errors: '',
       status: 'idle',
     },
-    lang: 'ru',
     currentPost: null,
     visitedPostsId: [],
     feeds: [],
@@ -60,19 +59,16 @@ export default () => {
     const validate = (url, feeds) => {
       const urls = feeds.map((feed) => feed.url);
 
-      const resultPromise = yup
+      const userSchema = yup
         .string()
         .url('mustBeValid')
         .notOneOf(urls, 'linkExists')
         .required()
         .validate(url);
-     return resultPromise
-      .then(data => {
-        return data
-      })
-      .catch(error => {
-        console.log(`${error} ошибка функции validate`)
-      })
+      console.log(userSchema)
+      return userSchema(url)
+      .then(() => null)
+      .catch(error => error);
     };
 
     elements.form.addEventListener('submit', (e) => {
@@ -81,10 +77,17 @@ export default () => {
       const url = formData.get('url');
       const { feeds } = wathcedState;
       validate(url, feeds)
-        .then((link) => {
+        .then((err) => {
+          if(err) {
+            wathcedState.error = err
+          }
+          else {
+          wathcedState.error = ''
+          // вызвать функцию загрузки фида 
+          }
           wathcedState.processLoading = { status: 'sending', errors: '' };
           // wathcedState.form = { status: 'sending', errors: '' }; -------------?
-          return link;
+          return err;
         })
         .then((validatedLink) => fetchRSS(validatedLink))
 
