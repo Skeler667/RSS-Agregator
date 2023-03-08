@@ -2,12 +2,15 @@ import * as path from 'path';
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 
-const mode = process.env.NODE_ENV;
+// const mode = process.env.NODE_ENV;
+const mode = 'development'
 
 const stylesHandler = MiniCssExtractPlugin.loader;
 
 const config = {
-  
+  performance: {
+    hints: false
+  },
   devServer: {
     open: true,
     host: 'localhost',
@@ -27,6 +30,7 @@ const config = {
 
 
   module: {
+    
     rules: [
 
       {

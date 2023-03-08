@@ -60,12 +60,19 @@ export default () => {
     const validate = (url, feeds) => {
       const urls = feeds.map((feed) => feed.url);
 
-      return yup
+      const resultPromise = yup
         .string()
         .url('mustBeValid')
         .notOneOf(urls, 'linkExists')
         .required()
         .validate(url);
+     return resultPromise
+      .then(data => {
+        return data
+      })
+      .catch(error => {
+        console.log(`${error} ошибка функции validate`)
+      })
     };
 
     elements.form.addEventListener('submit', (e) => {
