@@ -66,8 +66,8 @@ export default () => {
         .required()
         .validate(url);
       console.log(userSchema)
-      return userSchema(url)
-      .then(() => null)
+      return userSchema
+      .then((url) => url)
       .catch(error => error);
     };
 
