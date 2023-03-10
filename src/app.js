@@ -77,21 +77,24 @@ export default () => {
       const url = formData.get('url');
       const { feeds } = wathcedState;
       validate(url, feeds)
-        .then((err) => {
-          if(err) {
-            wathcedState.error = err
+        .then((url) => {
+          if(url) {
+            wathcedState.error = url
           }
           else {
           wathcedState.error = ''
           // вызвать функцию загрузки фида 
+          return fetchRSS(url)
           }
+          
           wathcedState.processLoading = { status: 'sending', errors: '' };
           // wathcedState.form = { status: 'sending', errors: '' }; -------------?
           return err;
         })
-        .then((validatedLink) => fetchRSS(validatedLink))
+        // .then((validatedLink) => fetchRSS(validatedLink))
 
-        .then((response) => {
+        // .then((response) => {
+          // промисы - часть другой функции
           const data = parseRSS(response.data.contents);
 
           data.feed.id = _.uniqueId();
@@ -175,5 +178,5 @@ export default () => {
       modal.setAttribute('aria-hidden', 'true');
       modal.setAttribute('style', 'display: none;');
     });
-  });
+  // });
 };
