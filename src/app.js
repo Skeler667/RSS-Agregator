@@ -75,26 +75,25 @@ export default () => {
       e.preventDefault();
       const formData = new FormData(e.target);
       const url = formData.get('url');
+      console.log(wathcedState)
       const { feeds } = wathcedState;
       validate(url, feeds)
         .then((url) => {
           if(url) {
-            wathcedState.error = url
+            
+            wathcedState.form.errors = url
           }
           else {
-          wathcedState.error = ''
+            wathcedState.form.errors = ''
           // вызвать функцию загрузки фида 
-          return fetchRSS(url)
+            fetchRSS(url)
           }
-          
           wathcedState.processLoading = { status: 'sending', errors: '' };
           // wathcedState.form = { status: 'sending', errors: '' }; -------------?
-          return err;
         })
-        // .then((validatedLink) => fetchRSS(validatedLink))
 
-        // .then((response) => {
-          // промисы - часть другой функции
+         .then((response) => {
+        
           const data = parseRSS(response.data.contents);
 
           data.feed.id = _.uniqueId();
@@ -178,5 +177,5 @@ export default () => {
       modal.setAttribute('aria-hidden', 'true');
       modal.setAttribute('style', 'display: none;');
     });
-  // });
+   });
 };
