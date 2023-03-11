@@ -13,7 +13,38 @@ const addProxy = (url) => {
   return urlWithProxy.toString();
 };
 
-const fetchRSS = (url) => axios.get(addProxy(url), { delay: 10000 });
+const fetchRSS = (url, wathcedState) => { 
+  axios.get(addProxy(url), { delay: 10000 })
+  .then((response) => {
+  
+
+  const data = parseRSS(response.data.contents);
+    console.log(data)
+          data.feed.id = _.uniqueId();
+          data.feed.url = url;
+
+          wathcedState.feeds.unshift(data.feed);
+
+          const posts = data.posts.map((item) => ({ ...item, id: _.uniqueId() }));
+
+          wathcedState.form = { status: 'success', errors: '' };
+          wathcedState.processLoading = { status: 'success', errors: '' };
+
+          wathcedState.posts = [...posts, ...wathcedState.posts];
+        })
+        .catch((errors) => {
+          console.log(`${errors} error in catch after loadPosts`);
+          switch (errors.name) {
+            case 'ParseError':
+              wathcedState.processLoading = { status: 'failed', errors: errors.message };
+              break;
+            case 'ValidationError':
+              wathcedState.form = { status: 'failed', errors: errors.message };
+              break;
+            default: console.log('xz');
+          }
+        });
+};
 
 export default () => {
   const elements = {
@@ -65,7 +96,6 @@ export default () => {
         .notOneOf(urls, 'linkExists')
         .required()
         .validate(url);
-      console.log(userSchema)
       return userSchema
       .then((url) => url)
       .catch(error => error);
@@ -75,43 +105,24 @@ export default () => {
       e.preventDefault();
       const formData = new FormData(e.target);
       const url = formData.get('url');
-      console.log(wathcedState)
       const { feeds } = wathcedState;
       validate(url, feeds)
         .then((url) => {
-          if(url) {
-            
+          if(url == '') {
             wathcedState.form.errors = url
           }
           else {
             wathcedState.form.errors = ''
+            wathcedState.processLoading = { status: 'sending', errors: '' };
+            wathcedState.form = { status: 'sending', errors: '' };
           // вызвать функцию загрузки фида 
-            fetchRSS(url)
+            fetchRSS(url, wathcedState)
           }
-          wathcedState.processLoading = { status: 'sending', errors: '' };
-          // wathcedState.form = { status: 'sending', errors: '' }; -------------?
         })
-
-         .then((response) => {
-        
-          const data = parseRSS(response.data.contents);
-
-          data.feed.id = _.uniqueId();
-          data.feed.url = url;
-
-          wathcedState.feeds.unshift(data.feed);
-
-          const posts = data.posts.map((item) => ({ ...item, id: _.uniqueId() }));
-
-          wathcedState.form = { status: 'success', errors: '' };
-          wathcedState.processLoading = { status: 'success', errors: '' };
-
-          wathcedState.posts = [...posts, ...wathcedState.posts];
-
+        //  .then((response) => {
           const loadPosts = () => {
             const urlsFeed = wathcedState.feeds.map((feedEl) => feedEl.url);
-            console.log(urlsFeed);
-            const promises = urlsFeed.map((urlEl) => fetchRSS(urlEl)
+            const promises = urlsFeed.map((urlEl) => fetchRSS(urlEl, wathcedState)
               .then((dataUrls) => {
                 const dataParse = parseRSS(dataUrls.data.contents);
                 const newPosts = dataParse.posts;
@@ -132,18 +143,6 @@ export default () => {
           wathcedState.feeds = [...wathcedState.feeds];
           loadPosts();
         })
-        .catch((errors) => {
-          console.log(`${errors} error in catch after loadPosts`);
-          switch (errors.name) {
-            case 'ParseError':
-              wathcedState.processLoading = { status: 'failed', errors: errors.message };
-              break;
-            case 'ValidationError':
-              wathcedState.form = { status: 'failed', errors: errors.message };
-              break;
-            default: console.log('xz');
-          }
-        });
     });
     const modal = document.querySelector('.modal');
     elements.posts.addEventListener('click', (e) => {
@@ -177,5 +176,4 @@ export default () => {
       modal.setAttribute('aria-hidden', 'true');
       modal.setAttribute('style', 'display: none;');
     });
-   });
 };
