@@ -13,37 +13,32 @@ const addProxy = (url) => {
   return urlWithProxy.toString();
 };
 
-const fetchRSS = (url, wathcedState) => { 
+const fetchRSS = (url, wathcedState) => {
   axios.get(addProxy(url), { delay: 10000 })
-  .then((response) => {
-  
+    .then((response) => {
+      const data = parseRSS(response.data.contents);
+      console.log(data);
+      data.feed.id = _.uniqueId();
+      data.feed.url = url;
+      wathcedState.feeds.unshift(data.feed);
+      const posts = data.posts.map((item) => ({ ...item, id: _.uniqueId() }));
+      wathcedState.form = { status: 'success', errors: '' };
+      wathcedState.processLoading = { status: 'success', errors: '' };
 
-  const data = parseRSS(response.data.contents);
-    console.log(data)
-          data.feed.id = _.uniqueId();
-          data.feed.url = url;
-
-          wathcedState.feeds.unshift(data.feed);
-
-          const posts = data.posts.map((item) => ({ ...item, id: _.uniqueId() }));
-
-          wathcedState.form = { status: 'success', errors: '' };
-          wathcedState.processLoading = { status: 'success', errors: '' };
-
-          wathcedState.posts = [...posts, ...wathcedState.posts];
-        })
-        .catch((errors) => {
-          console.log(`${errors} error in catch after loadPosts`);
-          switch (errors.name) {
-            case 'ParseError':
-              wathcedState.processLoading = { status: 'failed', errors: errors.message };
-              break;
-            case 'ValidationError':
-              wathcedState.form = { status: 'failed', errors: errors.message };
-              break;
-            default: console.log('xz');
-          }
-        });
+      wathcedState.posts = [...posts, ...wathcedState.posts];
+    })
+    .catch((errors) => {
+      console.log(`${errors} error in catch after loadPosts`);
+      switch (errors.name) {
+        case 'ParseError':
+          wathcedState.processLoading = { status: 'failed', errors: errors.message };
+          break;
+        case 'ValidationError':
+          wathcedState.form = { status: 'failed', errors: errors.message };
+          break;
+        default: console.log('xz');
+      }
+    });
 };
 
 export default () => {
@@ -97,8 +92,29 @@ export default () => {
         .required()
         .validate(url);
       return userSchema
-      .then((url) => url)
-      .catch(error => error);
+        .then((url) => url)
+        .catch((error) => error);
+    };
+
+    //  .then((response) => {
+    const loadPosts = () => {
+      const urlsFeed = wathcedState.feeds.map((feedEl) => feedEl.url);
+      const promises = urlsFeed.map((urlEl) => fetchRSS(urlEl, wathcedState)
+        .then((dataUrls) => {
+          const dataParse = dataUrls;
+          const newPosts = dataParse.posts;
+          const links = wathcedState.posts.map((post) => post.link);
+          const addedPosts = newPosts.filter((post) => !links.includes(post.link));
+
+          wathcedState.posts = addedPosts.concat(...wathcedState.posts);
+        })
+        .catch((err) => {
+          console.log(err.name);
+        }));
+
+      Promise.all(promises).finally(() => {
+        setTimeout(() => loadPosts(), 5000);
+      });
     };
 
     elements.form.addEventListener('submit', (e) => {
@@ -108,72 +124,51 @@ export default () => {
       const { feeds } = wathcedState;
       validate(url, feeds)
         .then((url) => {
-          if(url == '') {
-            wathcedState.form.errors = url
-          }
-          else {
-            wathcedState.form.errors = ''
+          if (url === '') {
+            wathcedState.form.errors = url;
+          } else {
+            wathcedState.form.errors = '';
             wathcedState.processLoading = { status: 'sending', errors: '' };
             wathcedState.form = { status: 'sending', errors: '' };
-          // вызвать функцию загрузки фида 
-            fetchRSS(url, wathcedState)
+            // вызвать функцию загрузки фида
+            fetchRSS(url, wathcedState);
           }
-        })
-        //  .then((response) => {
-          const loadPosts = () => {
-            const urlsFeed = wathcedState.feeds.map((feedEl) => feedEl.url);
-            const promises = urlsFeed.map((urlEl) => fetchRSS(urlEl, wathcedState)
-              .then((dataUrls) => {
-                const dataParse = parseRSS(dataUrls.data.contents);
-                const newPosts = dataParse.posts;
-                const links = wathcedState.posts.map((post) => post.link);
-                const addedPosts = newPosts.filter((post) => !links.includes(post.link));
+        });
 
-                wathcedState.posts = addedPosts.concat(...wathcedState.posts);
-              })
-              .catch((err) => {
-                console.log(err.name);
-              }));
+      wathcedState.feeds = [...wathcedState.feeds];
+      loadPosts();
+    });
+  });
+  const modal = document.querySelector('.modal');
+  elements.posts.addEventListener('click', (e) => {
+    if (e.target.hasAttribute('data-id')) {
+      wathcedState.currentPost = e.target.dataset.id;
+      wathcedState.visitedPostsId.push(e.target.dataset.id);
+    }
 
-            Promise.all(promises).finally(() => {
-              setTimeout(() => loadPosts(), 5000);
-            });
-          };
-
-          wathcedState.feeds = [...wathcedState.feeds];
-          loadPosts();
-        })
-    });
-    const modal = document.querySelector('.modal');
-    elements.posts.addEventListener('click', (e) => {
-      if (e.target.hasAttribute('data-id')) {
-        wathcedState.currentPost = e.target.dataset.id;
-        wathcedState.visitedPostsId.push(e.target.dataset.id);
-      }
-
-      if (e.target.tagName === 'BUTTON') {
-        const { id } = e.target.dataset;
-        wathcedState.currentPost = wathcedState.posts.find(
-          (post) => post.id === id,
-        );
-      }
-    });
-    const closeModal = document.querySelector('.btn-secondary');
-    closeModal.addEventListener('click', () => {
-      document.body.setAttribute('style', '');
-      document.body.classList.remove('modal-open');
-      modal.classList.remove('show');
-      modal.removeAttribute('aria-modal');
-      modal.setAttribute('aria-hidden', 'true');
-      modal.setAttribute('style', 'display: none;');
-    });
-    const btnClose = modal.querySelector('.btn-close');
-    btnClose.addEventListener('click', () => {
-      document.body.setAttribute('style', '');
-      document.body.classList.remove('modal-open');
-      modal.classList.remove('show');
-      modal.removeAttribute('aria-modal');
-      modal.setAttribute('aria-hidden', 'true');
-      modal.setAttribute('style', 'display: none;');
-    });
+    if (e.target.tagName === 'BUTTON') {
+      const { id } = e.target.dataset;
+      wathcedState.currentPost = wathcedState.posts.find(
+        (post) => post.id === id,
+      );
+    }
+  });
+  const closeModal = document.querySelector('.btn-secondary');
+  closeModal.addEventListener('click', () => {
+    document.body.setAttribute('style', '');
+    document.body.classList.remove('modal-open');
+    modal.classList.remove('show');
+    modal.removeAttribute('aria-modal');
+    modal.setAttribute('aria-hidden', 'true');
+    modal.setAttribute('style', 'display: none;');
+  });
+  const btnClose = modal.querySelector('.btn-close');
+  btnClose.addEventListener('click', () => {
+    document.body.setAttribute('style', '');
+    document.body.classList.remove('modal-open');
+    modal.classList.remove('show');
+    modal.removeAttribute('aria-modal');
+    modal.setAttribute('aria-hidden', 'true');
+    modal.setAttribute('style', 'display: none;');
+  });
 };
