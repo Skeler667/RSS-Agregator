@@ -17,7 +17,7 @@ const fetchRSS = (url, wathcedState) => {
   axios.get(addProxy(url), { delay: 10000 })
     .then((response) => {
       const data = parseRSS(response.data.contents);
-      console.log(data);
+
       data.feed.id = _.uniqueId();
       data.feed.url = url;
       wathcedState.feeds.unshift(data.feed);
@@ -82,24 +82,13 @@ export default () => {
   }).then(() => {
     const wathcedState = watch(initialState, elements, i18nextInstance);
 
-    const validate = (url, feeds) => {
-      const urls = feeds.map((feed) => feed.url);
-
-      const userSchema = yup
-        .string()
-        .url('mustBeValid')
-        .notOneOf(urls, 'linkExists')
-        .required()
-        .validate(url);
-      return userSchema
+    const loadPosts = () => {
+      const promises = (urls) => urls.map((urlEl) => fetchRSS(urlEl, wathcedState))
         .then((url) => url)
         .catch((error) => error);
-    };
-
-    //  .then((response) => {
-    const loadPosts = () => {
+      // console.log(promises(urlsFeed))
       const urlsFeed = wathcedState.feeds.map((feedEl) => feedEl.url);
-      const promises = urlsFeed.map((urlEl) => fetchRSS(urlEl, wathcedState)
+      promises(urlsFeed)
         .then((dataUrls) => {
           const dataParse = dataUrls;
           const newPosts = dataParse.posts;
@@ -110,13 +99,28 @@ export default () => {
         })
         .catch((err) => {
           console.log(err.name);
-        }));
+        });
 
       Promise.all(promises).finally(() => {
         setTimeout(() => loadPosts(), 5000);
       });
     };
 
+    const validate = (url, feeds) => {
+      const urls = feeds.map((feed) => feed.url);
+
+      const userSchema = yup
+        .string()
+        .url('mustBeValid')
+        .notOneOf(urls, 'linkExists')
+        .required()
+        .validate(url);
+      return userSchema
+        .then(() => null)
+        .catch((error) => error);
+    };
+
+    //  .then((response) => {
     elements.form.addEventListener('submit', (e) => {
       e.preventDefault();
       const formData = new FormData(e.target);
@@ -124,21 +128,23 @@ export default () => {
       const { feeds } = wathcedState;
       validate(url, feeds)
         .then((url) => {
-          if (url === '') {
-            wathcedState.form.errors = url;
-          } else {
+          try {
             wathcedState.form.errors = '';
             wathcedState.processLoading = { status: 'sending', errors: '' };
             wathcedState.form = { status: 'sending', errors: '' };
             // вызвать функцию загрузки фида
             fetchRSS(url, wathcedState);
+          } catch (error) {
+            wathcedState.form.errors = url;
+            console.log('Ошибка в ссылке валидации');
           }
         });
 
       wathcedState.feeds = [...wathcedState.feeds];
-      loadPosts();
     });
+    loadPosts();
   });
+
   const modal = document.querySelector('.modal');
   elements.posts.addEventListener('click', (e) => {
     if (e.target.hasAttribute('data-id')) {
