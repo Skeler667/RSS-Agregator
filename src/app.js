@@ -17,7 +17,7 @@ const fetchRSS = (url, wathcedState) => {
   axios.get(addProxy(url), { delay: 10000 })
     .then((response) => {
       const data = parseRSS(response.data.contents);
-
+      console.log(data);
       data.feed.id = _.uniqueId();
       data.feed.url = url;
       wathcedState.feeds.unshift(data.feed);
@@ -82,30 +82,6 @@ export default () => {
   }).then(() => {
     const wathcedState = watch(initialState, elements, i18nextInstance);
 
-    const loadPosts = () => {
-      const promises = (urls) => urls.map((urlEl) => fetchRSS(urlEl, wathcedState))
-        .then((url) => url)
-        .catch((error) => error);
-      // console.log(promises(urlsFeed))
-      const urlsFeed = wathcedState.feeds.map((feedEl) => feedEl.url);
-      promises(urlsFeed)
-        .then((dataUrls) => {
-          const dataParse = dataUrls;
-          const newPosts = dataParse.posts;
-          const links = wathcedState.posts.map((post) => post.link);
-          const addedPosts = newPosts.filter((post) => !links.includes(post.link));
-
-          wathcedState.posts = addedPosts.concat(...wathcedState.posts);
-        })
-        .catch((err) => {
-          console.log(err.name);
-        });
-
-      Promise.all(promises).finally(() => {
-        setTimeout(() => loadPosts(), 5000);
-      });
-    };
-
     const validate = (url, feeds) => {
       const urls = feeds.map((feed) => feed.url);
 
@@ -121,6 +97,26 @@ export default () => {
     };
 
     //  .then((response) => {
+    const loadPosts = () => {
+      const urlsFeed = wathcedState.feeds.map((feedEl) => feedEl.url);
+      const promises = urlsFeed.map((urlEl) => fetchRSS(urlEl, wathcedState)
+        .then((dataUrls) => {
+          // всё что внутри then обернуть в функцию --- ?
+          const dataParse = dataUrls;
+          const newPosts = dataParse.posts;
+          const links = wathcedState.posts.map((post) => post.link);
+          const addedPosts = newPosts.filter((post) => !links.includes(post.link));
+
+          wathcedState.posts = addedPosts.concat(...wathcedState.posts);
+        })
+        .catch((err) => {
+          console.log(err.name);
+        }));
+
+      Promise.all(promises).finally(() => {
+        setTimeout(() => loadPosts(), 5000);
+      });
+    };
     elements.form.addEventListener('submit', (e) => {
       e.preventDefault();
       const formData = new FormData(e.target);
@@ -132,19 +128,16 @@ export default () => {
             wathcedState.form.errors = '';
             wathcedState.processLoading = { status: 'sending', errors: '' };
             wathcedState.form = { status: 'sending', errors: '' };
-            // вызвать функцию загрузки фида
             fetchRSS(url, wathcedState);
           } catch (error) {
-            wathcedState.form.errors = url;
-            console.log('Ошибка в ссылке валидации');
+            wathcedState.form.errors = error;
           }
         });
 
       wathcedState.feeds = [...wathcedState.feeds];
+      loadPosts();
     });
-    loadPosts();
   });
-
   const modal = document.querySelector('.modal');
   elements.posts.addEventListener('click', (e) => {
     if (e.target.hasAttribute('data-id')) {
