@@ -13,11 +13,13 @@ const addProxy = (url) => {
   return urlWithProxy.toString();
 };
 
+const UPDATE_TIME = 5000;
+
 const fetchRSS = (url, wathcedState) => {
   axios.get(addProxy(url), { delay: 10000 })
     .then((response) => {
       const data = parseRSS(response.data.contents);
-      console.log(data);
+
       data.feed.id = _.uniqueId();
       data.feed.url = url;
       wathcedState.feeds.unshift(data.feed);
@@ -26,6 +28,7 @@ const fetchRSS = (url, wathcedState) => {
       wathcedState.processLoading = { status: 'success', errors: '' };
 
       wathcedState.posts = [...posts, ...wathcedState.posts];
+
     })
     .catch((errors) => {
       console.log(`${errors} error in catch after loadPosts`);
@@ -82,6 +85,26 @@ export default () => {
   }).then(() => {
     const wathcedState = watch(initialState, elements, i18nextInstance);
 
+    const loadPosts = (watchedState) => {
+      const urlsFeed = wathcedState.feeds.map((feedEl) => feedEl.url);
+      const promises = urlsFeed.map((urlEl) => fetchRSS(urlEl, wathcedState))
+        .then((dataUrls) => { 
+          const dataParse = dataUrls;
+          const newPosts = dataParse.posts;
+          const links = wathcedState.posts.map((post) => post.link);
+          const addedPosts = newPosts.filter((post) => !links.includes(post.link));
+  
+          wathcedState.posts = addedPosts.concat(...wathcedState.posts);
+        })
+        .catch((err) => {
+          console.log(err.name);
+        });
+        Promise.all(promises).finally(() => {
+          // Можно запускать новый обход только после завершения предыдущего
+          setTimeout(() => loadPosts(watchedState), UPDATE_TIME);
+        });
+    };
+
     const validate = (url, feeds) => {
       const urls = feeds.map((feed) => feed.url);
 
@@ -97,77 +120,78 @@ export default () => {
     };
 
     //  .then((response) => {
-    const loadPosts = () => {
-      const urlsFeed = wathcedState.feeds.map((feedEl) => feedEl.url);
-      const promises = urlsFeed.map((urlEl) => fetchRSS(urlEl, wathcedState)
-        .then((dataUrls) => {
-          // всё что внутри then обернуть в функцию --- ?
-          const dataParse = dataUrls;
-          const newPosts = dataParse.posts;
-          const links = wathcedState.posts.map((post) => post.link);
-          const addedPosts = newPosts.filter((post) => !links.includes(post.link));
-
-          wathcedState.posts = addedPosts.concat(...wathcedState.posts);
-        })
-        .catch((err) => {
-          console.log(err.name);
-        }));
-
-      Promise.all(promises).finally(() => {
-        setTimeout(() => loadPosts(), 5000);
-      });
-    };
     elements.form.addEventListener('submit', (e) => {
       e.preventDefault();
       const formData = new FormData(e.target);
       const url = formData.get('url');
       const { feeds } = wathcedState;
       validate(url, feeds)
-        .then((url) => {
-          try {
-            wathcedState.form.errors = '';
-            wathcedState.processLoading = { status: 'sending', errors: '' };
+        .then((error) => {
+          if (error) {
+            wathcedState.form = {status: 'failed', errors: error};
+            console.log('Ошибка в ссылке валидации');  
+            return
+          } else {
+            // wathcedState.processLoading = { status: 'sending', errors: '' }; 
+            // Процесс в форме не меняем - обработчик формы отвечает только за форму
             wathcedState.form = { status: 'sending', errors: '' };
+            // вызвать функцию загрузки фида
             fetchRSS(url, wathcedState);
-          } catch (error) {
-            wathcedState.form.errors = error;
           }
         });
 
       wathcedState.feeds = [...wathcedState.feeds];
-      loadPosts();
     });
-  });
-  const modal = document.querySelector('.modal');
-  elements.posts.addEventListener('click', (e) => {
-    if (e.target.hasAttribute('data-id')) {
-      wathcedState.currentPost = e.target.dataset.id;
-      wathcedState.visitedPostsId.push(e.target.dataset.id);
-    }
+    // EvtListener from posts btn
+    // setTimeout(loadPosts(), 5000)
+    setTimeout(() => loadPosts(wathcedState), UPDATE_TIME);
 
-    if (e.target.tagName === 'BUTTON') {
-      const { id } = e.target.dataset;
-      wathcedState.currentPost = wathcedState.posts.find(
-        (post) => post.id === id,
-      );
-    }
+
+
+    const modal = document.querySelector('.modal');
+    elements.posts.addEventListener('click', (e) => {
+      if (e.target.hasAttribute('data-id')) {
+        wathcedState.currentPost = e.target.dataset.id;
+        wathcedState.visitedPostsId.push(e.target.dataset.id);
+      }
+  
+      if (e.target.tagName === 'BUTTON') {
+        const { id } = e.target.dataset;
+        wathcedState.currentPost = wathcedState.posts.find(
+          (post) => post.id === id,
+        );
+      }
+    });
+    const closeModal = document.querySelector('.btn-secondary');
+    closeModal.addEventListener('click', () => {
+      document.body.setAttribute('style', '');
+      document.body.classList.remove('modal-open');
+      modal.classList.remove('show');
+      modal.removeAttribute('aria-modal');
+      modal.setAttribute('aria-hidden', 'true');
+      modal.setAttribute('style', 'display: none;');
+    });
+    const btnClose = modal.querySelector('.btn-close');
+    btnClose.addEventListener('click', () => {
+      document.body.setAttribute('style', '');
+      document.body.classList.remove('modal-open');
+      modal.classList.remove('show');
+      modal.removeAttribute('aria-modal');
+      modal.setAttribute('aria-hidden', 'true');
+      modal.setAttribute('style', 'display: none;');
+    });
+
+
+
+    
   });
-  const closeModal = document.querySelector('.btn-secondary');
-  closeModal.addEventListener('click', () => {
-    document.body.setAttribute('style', '');
-    document.body.classList.remove('modal-open');
-    modal.classList.remove('show');
-    modal.removeAttribute('aria-modal');
-    modal.setAttribute('aria-hidden', 'true');
-    modal.setAttribute('style', 'display: none;');
-  });
-  const btnClose = modal.querySelector('.btn-close');
-  btnClose.addEventListener('click', () => {
-    document.body.setAttribute('style', '');
-    document.body.classList.remove('modal-open');
-    modal.classList.remove('show');
-    modal.removeAttribute('aria-modal');
-    modal.setAttribute('aria-hidden', 'true');
-    modal.setAttribute('style', 'display: none;');
-  });
+
 };
+
+
+// const addBtn = document.querySelector('data-bs-toggle');
+
+// addBtn.addEventListener('click', (e) => {
+//   e.preventDefault();
+// console.log(e)
+// })                          
