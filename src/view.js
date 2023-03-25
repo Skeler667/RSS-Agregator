@@ -77,7 +77,7 @@ const renderPosts = (posts, elements, state) => {
 };
 
 const renderError = (errType, elements, i18nextInstance) => {
-  console.log(i18nextInstance.t(errType))
+  console.log(i18nextInstance.t(errType));
   const { feedback, input } = elements;
   clear(elements);
   input.classList.add('is-invalid');

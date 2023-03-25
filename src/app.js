@@ -5,6 +5,7 @@ import i18next from 'i18next';
 import watch from './view.js';
 import parseRSS from './parseRSS.js';
 import resources from './locales/index.js';
+import { data } from 'jquery';
 
 const addProxy = (url) => {
   const urlWithProxy = new URL('/get', 'https://allorigins.hexlet.app');
@@ -28,7 +29,7 @@ const fetchRSS = (url, wathcedState) => {
       wathcedState.processLoading = { status: 'success', errors: '' };
 
       wathcedState.posts = [...posts, ...wathcedState.posts];
-
+      
     })
     .catch((errors) => {
       console.log(`${errors} error in catch after loadPosts`);
@@ -42,6 +43,7 @@ const fetchRSS = (url, wathcedState) => {
         default: console.log('xz');
       }
     });
+    
 };
 
 export default () => {
@@ -85,24 +87,23 @@ export default () => {
   }).then(() => {
     const wathcedState = watch(initialState, elements, i18nextInstance);
 
-    const loadPosts = (watchedState) => {
-      const urlsFeed = wathcedState.feeds.map((feedEl) => feedEl.url);
-      const promises = urlsFeed.map((urlEl) => fetchRSS(urlEl, wathcedState))
-        .then((dataUrls) => { 
-          const dataParse = dataUrls;
-          const newPosts = dataParse.posts;
-          const links = wathcedState.posts.map((post) => post.link);
-          const addedPosts = newPosts.filter((post) => !links.includes(post.link));
-  
-          wathcedState.posts = addedPosts.concat(...wathcedState.posts);
-        })
-        .catch((err) => {
-          console.log(err.name);
-        });
-        Promise.all(promises).finally(() => {
-          // Можно запускать новый обход только после завершения предыдущего
-          setTimeout(() => loadPosts(watchedState), UPDATE_TIME);
-        });
+    const loadPosts = (state) => {
+      const urls = state.feeds.map((feed) => feed.url);
+      const promises = urls.map((url) => axios.get(addProxy(url))
+          .then((response) => {
+            const data = parseRSS(response.data.contents);
+            const oldPosts = state.posts;
+            const diff = _.differenceBy(data.posts, oldPosts, 'link');
+            state.posts = diff.concat(...state.posts);
+          })
+          .catch((err) => {
+            console.error(err);
+          })
+      );
+
+      Promise.all(promises).finally(() =>
+        setTimeout(() => loadPosts(state), UPDATE_TIME)
+      );
     };
 
     const validate = (url, feeds) => {
@@ -128,11 +129,10 @@ export default () => {
       validate(url, feeds)
         .then((error) => {
           if (error) {
-            wathcedState.form = {status: 'failed', errors: error};
-            console.log('Ошибка в ссылке валидации');  
-            return
+            wathcedState.form = { status: 'failed', errors: error };
+            console.log('Ошибка в ссылке валидации');
           } else {
-            // wathcedState.processLoading = { status: 'sending', errors: '' }; 
+            // wathcedState.processLoading = { status: 'sending', errors: '' };
             // Процесс в форме не меняем - обработчик формы отвечает только за форму
             wathcedState.form = { status: 'sending', errors: '' };
             // вызвать функцию загрузки фида
@@ -146,15 +146,13 @@ export default () => {
     // setTimeout(loadPosts(), 5000)
     setTimeout(() => loadPosts(wathcedState), UPDATE_TIME);
 
-
-
     const modal = document.querySelector('.modal');
     elements.posts.addEventListener('click', (e) => {
       if (e.target.hasAttribute('data-id')) {
         wathcedState.currentPost = e.target.dataset.id;
         wathcedState.visitedPostsId.push(e.target.dataset.id);
       }
-  
+
       if (e.target.tagName === 'BUTTON') {
         const { id } = e.target.dataset;
         wathcedState.currentPost = wathcedState.posts.find(
@@ -180,18 +178,12 @@ export default () => {
       modal.setAttribute('aria-hidden', 'true');
       modal.setAttribute('style', 'display: none;');
     });
-
-
-
-    
   });
-
 };
-
 
 // const addBtn = document.querySelector('data-bs-toggle');
 
 // addBtn.addEventListener('click', (e) => {
 //   e.preventDefault();
 // console.log(e)
-// })                          
+// })
