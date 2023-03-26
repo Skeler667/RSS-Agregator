@@ -89,7 +89,9 @@ export default () => {
 
     const loadPosts = (state) => {
       const urls = state.feeds.map((feed) => feed.url);
+      wathcedState.processLoading = { status: 'sending', errors: '' }
       const promises = urls.map((url) => axios.get(addProxy(url))
+      
           .then((response) => {
             const data = parseRSS(response.data.contents);
             const oldPosts = state.posts;
@@ -98,9 +100,10 @@ export default () => {
           })
           .catch((err) => {
             console.error(err);
+            wathcedState.processLoading = { status: 'failed', errors: err }
           })
       );
-
+      wathcedState.processLoading = { status: 'success', errors: '' }
       Promise.all(promises).finally(() =>
         setTimeout(() => loadPosts(state), UPDATE_TIME)
       );
