@@ -8,23 +8,23 @@ import resources from './locales/index.js';
 
 const UPDATE_TIME = 5000;
 
-const updatePosts = (state) => {
-  const urls = state.feeds.map((feed) => feed.url);
-  wathcedState.processLoading = { status: 'sending', errors: '' };
+const updatePosts = (wathcedState) => {
+  const urls = wathcedState.feeds.map((feed) => feed.url);
   const promises = urls.map((url) => axios.get(addProxy(url), { timeout: UPDATE_TIME })
-
     .then((response) => {
       const data = parseRSS(response.data.contents);
-      const oldPosts = state.posts;
+      const oldPosts = wathcedState.posts;
       const diff = _.differenceBy(data.posts, oldPosts, 'link');
-      state.posts = diff.concat(...state.posts);
+      wathcedState.posts = diff.concat(...wathcedState.posts);
+      wathcedState.processLoading = { status: 'success', errors: '' };
     })
     .catch((err) => {
-      console.error(err);
+      console.log('err');
       wathcedState.processLoading = { status: 'failed', errors: err };
     }));
-  wathcedState.processLoading = { status: 'success', errors: '' };
-  Promise.all(promises).finally(() => setTimeout(() => updatePosts(state), UPDATE_TIME));
+    console.log('status: `success`')
+  // wathcedState.processLoading = { status: 'success', errors: '' };
+  Promise.all(promises).finally(() => setTimeout(() => updatePosts(wathcedState), UPDATE_TIME));
 };
 
 const addProxy = (url) => {
@@ -35,14 +35,14 @@ const addProxy = (url) => {
 };
 
 const fetchRSS = (url, wathcedState) => {
+  wathcedState.processLoading = { status: 'sending', errors: '' };
   axios.get(addProxy(url), { delay: 10000 })
     .then((response) => {
       const data = parseRSS(response.data.contents);
-
       data.feed.id = _.uniqueId();
       data.feed.url = url;
       wathcedState.feeds.unshift(data.feed);
-      const posts = data.posts.map((item) => ({ ...item, id: _.uniqueId() }));
+      const posts = data.posts.map((post) => ({ ...post, channelId: data.feed.id, id: _.uniqueId() }));
       wathcedState.form = { status: 'success', errors: '' };
       wathcedState.processLoading = { status: 'success', errors: '' };
 
@@ -127,7 +127,8 @@ export default () => {
         .then((error) => {
           if (error) {
             wathcedState.form = { status: 'failed', errors: error };
-            console.log('Ошибка в ссылке валидации');
+            console.log(`${error} Ошибка в ссылке валидации`);
+            
           } else {
             // wathcedState.processLoading = { status: 'sending', errors: '' };
             // Процесс в форме не меняем - обработчик формы отвечает только за форму
