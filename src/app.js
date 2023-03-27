@@ -5,7 +5,27 @@ import i18next from 'i18next';
 import watch from './view.js';
 import parseRSS from './parseRSS.js';
 import resources from './locales/index.js';
-import { data } from 'jquery';
+
+const UPDATE_TIME = 5000;
+
+const updatePosts = (state) => {
+  const urls = state.feeds.map((feed) => feed.url);
+  wathcedState.processLoading = { status: 'sending', errors: '' };
+  const promises = urls.map((url) => axios.get(addProxy(url), { timeout: UPDATE_TIME })
+
+    .then((response) => {
+      const data = parseRSS(response.data.contents);
+      const oldPosts = state.posts;
+      const diff = _.differenceBy(data.posts, oldPosts, 'link');
+      state.posts = diff.concat(...state.posts);
+    })
+    .catch((err) => {
+      console.error(err);
+      wathcedState.processLoading = { status: 'failed', errors: err };
+    }));
+  wathcedState.processLoading = { status: 'success', errors: '' };
+  Promise.all(promises).finally(() => setTimeout(() => updatePosts(state), UPDATE_TIME));
+};
 
 const addProxy = (url) => {
   const urlWithProxy = new URL('/get', 'https://allorigins.hexlet.app');
@@ -13,8 +33,6 @@ const addProxy = (url) => {
   urlWithProxy.searchParams.set('disableCache', 'true');
   return urlWithProxy.toString();
 };
-
-const UPDATE_TIME = 5000;
 
 const fetchRSS = (url, wathcedState) => {
   axios.get(addProxy(url), { delay: 10000 })
@@ -29,10 +47,9 @@ const fetchRSS = (url, wathcedState) => {
       wathcedState.processLoading = { status: 'success', errors: '' };
 
       wathcedState.posts = [...posts, ...wathcedState.posts];
-      
     })
     .catch((errors) => {
-      console.log(`${errors} error in catch after loadPosts`);
+      console.log(`${errors} error in catch after updatePosts`);
       switch (errors.name) {
         case 'ParseError':
           wathcedState.processLoading = { status: 'failed', errors: errors.message };
@@ -43,7 +60,6 @@ const fetchRSS = (url, wathcedState) => {
         default: console.log('xz');
       }
     });
-    
 };
 
 export default () => {
@@ -87,28 +103,6 @@ export default () => {
   }).then(() => {
     const wathcedState = watch(initialState, elements, i18nextInstance);
 
-    const loadPosts = (state) => {
-      const urls = state.feeds.map((feed) => feed.url);
-      wathcedState.processLoading = { status: 'sending', errors: '' }
-      const promises = urls.map((url) => axios.get(addProxy(url))
-      
-          .then((response) => {
-            const data = parseRSS(response.data.contents);
-            const oldPosts = state.posts;
-            const diff = _.differenceBy(data.posts, oldPosts, 'link');
-            state.posts = diff.concat(...state.posts);
-          })
-          .catch((err) => {
-            console.error(err);
-            wathcedState.processLoading = { status: 'failed', errors: err }
-          })
-      );
-      wathcedState.processLoading = { status: 'success', errors: '' }
-      Promise.all(promises).finally(() =>
-        setTimeout(() => loadPosts(state), UPDATE_TIME)
-      );
-    };
-
     const validate = (url, feeds) => {
       const urls = feeds.map((feed) => feed.url);
 
@@ -146,8 +140,8 @@ export default () => {
       wathcedState.feeds = [...wathcedState.feeds];
     });
     // EvtListener from posts btn
-    // setTimeout(loadPosts(), 5000)
-    setTimeout(() => loadPosts(wathcedState), UPDATE_TIME);
+    // setTimeout(updatePosts(), 5000)
+    setTimeout(() => updatePosts(wathcedState), UPDATE_TIME);
 
     const modal = document.querySelector('.modal');
     elements.posts.addEventListener('click', (e) => {
