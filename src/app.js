@@ -9,6 +9,9 @@ import resources from './locales/index.js';
 const UPDATE_TIME = 5000;
 
 const updatePosts = (wathcedState) => {
+  if (wathcedState.form.errors !== '') {
+    return;
+  }
   const urls = wathcedState.feeds.map((feed) => feed.url);
   const promises = urls.map((url) => axios.get(addProxy(url), { timeout: UPDATE_TIME })
     .then((response) => {
@@ -17,13 +20,14 @@ const updatePosts = (wathcedState) => {
       const diff = _.differenceBy(data.posts, oldPosts, 'link');
       wathcedState.posts = diff.concat(...wathcedState.posts);
       wathcedState.processLoading = { status: 'success', errors: '' };
+      
     })
+
     .catch((err) => {
-      console.log('err');
+      console.log(`${err}`);
       wathcedState.processLoading = { status: 'failed', errors: err };
     }));
-    console.log('status: `success`')
-  // wathcedState.processLoading = { status: 'success', errors: '' };
+
   Promise.all(promises).finally(() => setTimeout(() => updatePosts(wathcedState), UPDATE_TIME));
 };
 
@@ -35,7 +39,7 @@ const addProxy = (url) => {
 };
 
 const fetchRSS = (url, wathcedState) => {
-  wathcedState.processLoading = { status: 'sending', errors: '' };
+  wathcedState.processLoading = { status: 'loading', errors: '' };
   axios.get(addProxy(url), { delay: 10000 })
     .then((response) => {
       const data = parseRSS(response.data.contents);
@@ -50,15 +54,7 @@ const fetchRSS = (url, wathcedState) => {
     })
     .catch((errors) => {
       console.log(`${errors} error in catch after updatePosts`);
-      switch (errors.name) {
-        case 'ParseError':
-          wathcedState.processLoading = { status: 'failed', errors: errors.message };
-          break;
-        case 'ValidationError':
-          wathcedState.form = { status: 'failed', errors: errors.message };
-          break;
-        default: console.log('xz');
-      }
+      wathcedState.processLoading = { status: 'failed', errors: errors.message };
     });
 };
 
@@ -126,14 +122,9 @@ export default () => {
       validate(url, feeds)
         .then((error) => {
           if (error) {
-            wathcedState.form = { status: 'failed', errors: error };
-            console.log(`${error} Ошибка в ссылке валидации`);
-            
+            wathcedState.form = { status: 'failed', errors: error.message };
           } else {
-            // wathcedState.processLoading = { status: 'sending', errors: '' };
-            // Процесс в форме не меняем - обработчик формы отвечает только за форму
-            wathcedState.form = { status: 'sending', errors: '' };
-            // вызвать функцию загрузки фида
+            wathcedState.form = { status: 'loading', errors: '' };
             fetchRSS(url, wathcedState);
           }
         });

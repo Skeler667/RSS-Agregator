@@ -5,7 +5,7 @@ export default {
     linkExists: 'RSS уже существует',
     unknown: 'Неизвестная ошибка',
     success: 'RSS успешно загружен',
-    sending: 'Идёт загрузка RSS...',
+    loading: 'Идёт загрузка RSS...',
     emptyField: 'Поле не должно быть пустым',
     mustBeValid: 'Ссылка должна быть валидным URL',
   },

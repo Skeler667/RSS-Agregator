@@ -113,9 +113,9 @@ const handleProcess = (state, elements, i18nextInstance) => {
       feedback.textContent = i18nextInstance.t('success');
       feedback.classList.add('text-success');
       break;
-    case 'sending':
+    case 'loading':
       clear(elements);
-      feedback.textContent = i18nextInstance.t('sending');
+      feedback.textContent = i18nextInstance.t('loading');
       feedback.classList.add('text-warning');
       input.disabled = 'disabled';
       button.disabled = 'disabled';
