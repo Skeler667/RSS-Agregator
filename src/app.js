@@ -17,7 +17,8 @@ const updatePosts = (wathcedState) => {
     .then((response) => {
       const data = parseRSS(response.data.contents);
       const oldPosts = wathcedState.posts;
-      const diff = _.differenceBy(data.posts, oldPosts, 'link');
+      let diff = _.differenceBy(data.posts, oldPosts, 'link');
+      diff.map((post) => post.id = _.uniqueId())
       wathcedState.posts = diff.concat(...wathcedState.posts);
       wathcedState.processLoading = { status: 'success', errors: '' };
       
@@ -124,14 +125,19 @@ export default () => {
           if (error) {
             wathcedState.form = { status: 'failed', errors: error.message };
           } else {
-            wathcedState.form = { status: 'loading', errors: '' };
+            // wathcedState.form = { status: 'loading', errors: '' };
             fetchRSS(url, wathcedState);
           }
         });
 
       wathcedState.feeds = [...wathcedState.feeds];
     });
-    // EvtListener from posts btn
+    
+      elements.postsContainer.addEventListener('click', e => {
+        console.log(e.target.getAttribute('data-id'))
+          wathcedState.currentPost = e.target.getAttribute('data-id')
+      })
+
     // setTimeout(updatePosts(), 5000)
     setTimeout(() => updatePosts(wathcedState), UPDATE_TIME);
 
@@ -170,9 +176,3 @@ export default () => {
   });
 };
 
-// const addBtn = document.querySelector('data-bs-toggle');
-
-// addBtn.addEventListener('click', (e) => {
-//   e.preventDefault();
-// console.log(e)
-// })
