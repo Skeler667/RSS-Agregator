@@ -9,4 +9,5 @@ parserOptions:
 rules: {
   "no-console": "off",
     "import/extensions": 0,
+    "max-len": "off"
 }

@@ -8,30 +8,6 @@ import resources from './locales/index.js';
 
 const UPDATE_TIME = 5000;
 
-const updatePosts = (wathcedState) => {
-  if (wathcedState.form.errors !== '') {
-    return;
-  }
-  const urls = wathcedState.feeds.map((feed) => feed.url);
-  const promises = urls.map((url) => axios.get(addProxy(url), { timeout: UPDATE_TIME })
-    .then((response) => {
-      const data = parseRSS(response.data.contents);
-      const oldPosts = wathcedState.posts;
-      let diff = _.differenceBy(data.posts, oldPosts, 'link');
-      diff.map((post) => post.id = _.uniqueId())
-      wathcedState.posts = diff.concat(...wathcedState.posts);
-      wathcedState.processLoading = { status: 'success', errors: '' };
-      
-    })
-
-    .catch((err) => {
-      console.log(`${err}`);
-      wathcedState.processLoading = { status: 'failed', errors: err };
-    }));
-
-  Promise.all(promises).finally(() => setTimeout(() => updatePosts(wathcedState), UPDATE_TIME));
-};
-
 const addProxy = (url) => {
   const urlWithProxy = new URL('/get', 'https://allorigins.hexlet.app');
   urlWithProxy.searchParams.set('url', url);
@@ -39,23 +15,48 @@ const addProxy = (url) => {
   return urlWithProxy.toString();
 };
 
+const updatePosts = (wathcedState) => {
+  const state = wathcedState;
+  if (state.form.errors !== '') {
+    return;
+  }
+  const urls = state.feeds.map((feed) => feed.url);
+  const promises = urls.map((url) => axios.get(addProxy(url), { timeout: UPDATE_TIME })
+    .then((response) => {
+      const data = parseRSS(response.data.contents);
+      const oldPosts = state.posts;
+      const diff = _.differenceBy(data.posts, oldPosts, 'link');
+      diff.map((post) => post.id = _.uniqueId());
+      state.posts = diff.concat(...state.posts);
+      state.processLoading = { status: 'success', errors: '' };
+    })
+
+    .catch((err) => {
+      console.log(`${err}`);
+      state.processLoading = { status: 'failed', errors: err };
+    }));
+
+  Promise.all(promises).finally(() => setTimeout(() => updatePosts(wathcedState), UPDATE_TIME));
+};
+
 const fetchRSS = (url, wathcedState) => {
-  wathcedState.processLoading = { status: 'loading', errors: '' };
+  const state = wathcedState;
+  state.processLoading = { status: 'loading', errors: '' };
   axios.get(addProxy(url), { delay: 10000 })
     .then((response) => {
       const data = parseRSS(response.data.contents);
       data.feed.id = _.uniqueId();
       data.feed.url = url;
-      wathcedState.feeds.unshift(data.feed);
+      state.feeds.unshift(data.feed);
       const posts = data.posts.map((post) => ({ ...post, channelId: data.feed.id, id: _.uniqueId() }));
-      wathcedState.form = { status: 'success', errors: '' };
-      wathcedState.processLoading = { status: 'success', errors: '' };
+      state.form = { status: 'success', errors: '' };
+      state.processLoading = { status: 'success', errors: '' };
 
-      wathcedState.posts = [...posts, ...wathcedState.posts];
+      state.posts = [...posts, ...state.posts];
     })
     .catch((errors) => {
       console.log(`${errors} error in catch after updatePosts`);
-      wathcedState.processLoading = { status: 'failed', errors: errors.message };
+      state.processLoading = { status: 'failed', errors: errors.message };
     });
 };
 
@@ -87,7 +88,7 @@ export default () => {
       status: 'idle',
     },
     currentPost: null,
-    visitedPostsId: [],
+    visitedPostsId: new Set(),
     feeds: [],
     posts: [],
   };
@@ -129,16 +130,15 @@ export default () => {
             fetchRSS(url, wathcedState);
           }
         });
-
       wathcedState.feeds = [...wathcedState.feeds];
     });
-    
-      elements.postsContainer.addEventListener('click', e => {
-        console.log(e.target.getAttribute('data-id'))
-          wathcedState.currentPost = e.target.getAttribute('data-id')
-      })
 
-    // setTimeout(updatePosts(), 5000)
+    elements.postsContainer.addEventListener('click', (e) => {
+      console.log(e.target.getAttribute('data-id'));
+      wathcedState.currentPost = e.target.getAttribute('data-id');
+      wathcedState.visitedPostsId.add(e.target.getAttribute('data-id'));
+    });
+
     setTimeout(() => updatePosts(wathcedState), UPDATE_TIME);
 
     const modal = document.querySelector('.modal');
@@ -175,4 +175,3 @@ export default () => {
     });
   });
 };
-

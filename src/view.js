@@ -17,8 +17,8 @@ const renderModal = (post) => {
   linkEl.setAttribute('href', link);
 };
 
-const renderVisitedPosts = (visitedPostsIds) => {
-  visitedPostsIds.forEach((id) => {
+const renderVisitedPosts = (state) => {
+  state.visitedPostsId.forEach((id) => {
     const link = document.querySelector(`a[data-id="${id}"]`);
     link.classList.remove('fw-normal');
     link.classList.add('fw-normal', 'link-secondary');
@@ -58,7 +58,6 @@ const renderPosts = (posts, elements, state) => {
 
     const btn = postElement.querySelector('button');
     btn.setAttribute('data-id', post.id);
-
     if (state.visitedPostsId.includes(id)) {
       linkEl.classList.add('fw-normal', 'link-secondary');
     } else {
@@ -148,7 +147,7 @@ const watch = (state, elements, i18nextInstance) => onChange(state, (path, value
       break;
     }
     case 'visitedPostsId': {
-      renderVisitedPosts(value, elements);
+      renderVisitedPosts(value, elements, state);
       break;
     }
     case 'currentPost': {
