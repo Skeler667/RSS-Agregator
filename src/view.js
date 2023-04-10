@@ -58,7 +58,7 @@ const renderPosts = (posts, elements, state) => {
 
     const btn = postElement.querySelector('button');
     btn.setAttribute('data-id', post.id);
-    if (state.visitedPostsId.includes(id)) {
+    if (state.visitedPostsId.has(id)) {
       linkEl.classList.add('fw-normal', 'link-secondary');
     } else {
       linkEl.classList.add('fw-bold');
@@ -147,7 +147,7 @@ const watch = (state, elements, i18nextInstance) => onChange(state, (path, value
       break;
     }
     case 'visitedPostsId': {
-      renderVisitedPosts(value, elements, state);
+      renderVisitedPosts(state);
       break;
     }
     case 'currentPost': {

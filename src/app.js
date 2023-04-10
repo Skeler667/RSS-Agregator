@@ -145,7 +145,7 @@ export default () => {
     elements.posts.addEventListener('click', (e) => {
       if (e.target.hasAttribute('data-id')) {
         wathcedState.currentPost = e.target.dataset.id;
-        wathcedState.visitedPostsId.push(e.target.dataset.id);
+        wathcedState.visitedPostsId.add(e.target.dataset.id);
       }
 
       if (e.target.tagName === 'BUTTON') {
