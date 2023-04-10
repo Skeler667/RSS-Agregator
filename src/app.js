@@ -55,8 +55,9 @@ const fetchRSS = (url, wathcedState) => {
       state.posts = [...posts, ...state.posts];
     })
     .catch((errors) => {
+      setTimeout(state.processLoading = { status: 'failed', errors: errors.message }, 5000);
       console.log(`${errors} error in catch after updatePosts`);
-      state.processLoading = { status: 'failed', errors: errors.message };
+      // state.processLoading = { status: 'failed', errors: errors.message };
     });
 };
 
