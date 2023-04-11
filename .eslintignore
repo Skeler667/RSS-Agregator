@@ -1,4 +1,4 @@
-/dist
-/webpack.config.js
-/node_modules
-/public
+dist
+webpack.config.js
+node_modules
+public
