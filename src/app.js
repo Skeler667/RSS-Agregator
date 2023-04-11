@@ -42,7 +42,7 @@ const updatePosts = (wathcedState) => {
 const fetchRSS = (url, wathcedState) => {
   const state = wathcedState;
   state.processLoading = { status: 'loading', errors: '' };
-  axios.get(addProxy(url), { timeout: 1000 * 5 })
+  axios.get(addProxy(url), { timeout: 5000 })
     .then((response) => {
       const data = parseRSS(response.data.contents);
       data.feed.id = _.uniqueId();
@@ -55,8 +55,13 @@ const fetchRSS = (url, wathcedState) => {
       state.posts = [...posts, ...state.posts];
     })
     .catch((errors) => {
-      console.log(`${errors} error in catch after updatePosts`);
+      if (errors.isAxiosError) {
+        state.processLoading.error = 'network';
+      } else {
+        state.processLoading.error = 'unknown';
+      }
       state.processLoading = { status: 'failed', errors: errors.message };
+      console.log(`${errors} error in catch after updatePosts`);
     });
 };
 
