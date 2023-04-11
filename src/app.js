@@ -50,6 +50,7 @@ const fetchRSS = (url, wathcedState) => {
       data.feed.id = _.uniqueId();
       data.feed.url = url;
       state.feeds.unshift(data.feed);
+      /* eslint-disable max-len */
       const posts = data.posts.map((post) => ({ ...post, channelId: data.feed.id, id: _.uniqueId() }));
       state.form = { status: 'success', errors: '' };
       state.processLoading = { status: 'success', errors: '' };
