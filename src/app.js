@@ -42,7 +42,7 @@ const updatePosts = (wathcedState) => {
 const fetchRSS = (url, wathcedState) => {
   const state = wathcedState;
   state.processLoading = { status: 'loading', errors: '' };
-  axios.get(addProxy(url), { delay: 10000 })
+  axios.get(addProxy(url), { timeout: 1000 * 5 })
     .then((response) => {
       const data = parseRSS(response.data.contents);
       data.feed.id = _.uniqueId();
@@ -55,9 +55,8 @@ const fetchRSS = (url, wathcedState) => {
       state.posts = [...posts, ...state.posts];
     })
     .catch((errors) => {
-      setTimeout(state.processLoading = { status: 'failed', errors: errors.message }, 5000);
       console.log(`${errors} error in catch after updatePosts`);
-      // state.processLoading = { status: 'failed', errors: errors.message };
+      state.processLoading = { status: 'failed', errors: errors.message };
     });
 };
 
@@ -116,7 +115,6 @@ export default () => {
         .catch((error) => error);
     };
 
-    //  .then((response) => {
     elements.form.addEventListener('submit', (e) => {
       e.preventDefault();
       const formData = new FormData(e.target);
@@ -127,7 +125,6 @@ export default () => {
           if (error) {
             wathcedState.form = { status: 'failed', errors: error.message };
           } else {
-            // wathcedState.form = { status: 'loading', errors: '' };
             fetchRSS(url, wathcedState);
           }
         });
@@ -135,14 +132,12 @@ export default () => {
     });
 
     elements.postsContainer.addEventListener('click', (e) => {
-      console.log(e.target.getAttribute('data-id'));
       wathcedState.currentPost = e.target.getAttribute('data-id');
       wathcedState.visitedPostsId.add(e.target.getAttribute('data-id'));
     });
 
     setTimeout(() => updatePosts(wathcedState), UPDATE_TIME);
 
-    const modal = document.querySelector('.modal');
     elements.posts.addEventListener('click', (e) => {
       if (e.target.hasAttribute('data-id')) {
         wathcedState.currentPost = e.target.dataset.id;
@@ -155,24 +150,6 @@ export default () => {
           (post) => post.id === id,
         );
       }
-    });
-    const closeModal = document.querySelector('.btn-secondary');
-    closeModal.addEventListener('click', () => {
-      document.body.setAttribute('style', '');
-      document.body.classList.remove('modal-open');
-      modal.classList.remove('show');
-      modal.removeAttribute('aria-modal');
-      modal.setAttribute('aria-hidden', 'true');
-      modal.setAttribute('style', 'display: none;');
-    });
-    const btnClose = modal.querySelector('.btn-close');
-    btnClose.addEventListener('click', () => {
-      document.body.setAttribute('style', '');
-      document.body.classList.remove('modal-open');
-      modal.classList.remove('show');
-      modal.removeAttribute('aria-modal');
-      modal.setAttribute('aria-hidden', 'true');
-      modal.setAttribute('style', 'display: none;');
     });
   });
 };
