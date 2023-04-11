@@ -3,13 +3,13 @@ import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 
 // const mode = process.env.NODE_ENV;
-const mode = 'development'
+const mode = 'development';
 
 const stylesHandler = MiniCssExtractPlugin.loader;
 
 const config = {
   performance: {
-    hints: false
+    hints: false,
   },
   devServer: {
     open: true,
@@ -27,7 +27,6 @@ const config = {
     }),
 
   ],
-
 
   module: {
     
@@ -53,4 +52,3 @@ export default {
   ...config,
   mode,
 };
-
