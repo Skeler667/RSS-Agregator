@@ -1,3 +1,4 @@
+/* eslint no-return-assign: 0 */
 import * as yup from 'yup';
 import axios from 'axios';
 import _ from 'lodash';
@@ -26,11 +27,12 @@ const updatePosts = (wathcedState) => {
       const data = parseRSS(response.data.contents);
       const oldPosts = state.posts;
       const diff = _.differenceBy(data.posts, oldPosts, 'link');
+      // eslint-disable-next-line no-return-assign
+      // eslint-disable-next-line no-param-reassign
       diff.map((post) => post.id = _.uniqueId());
       state.posts = diff.concat(...state.posts);
-      state.processLoading = { status: 'success', errors: '' };
+      // state.processLoading = { status: 'success', errors: '' };
     })
-
     .catch((err) => {
       console.log(`${err}`);
       state.processLoading = { status: 'failed', errors: err };
@@ -42,7 +44,7 @@ const updatePosts = (wathcedState) => {
 const fetchRSS = (url, wathcedState) => {
   const state = wathcedState;
   state.processLoading = { status: 'loading', errors: '' };
-  axios.get(addProxy(url), { timeout: 500 })
+  axios.get(addProxy(url), { timeout: 5000 })
     .then((response) => {
       const data = parseRSS(response.data.contents);
       data.feed.id = _.uniqueId();
@@ -56,12 +58,13 @@ const fetchRSS = (url, wathcedState) => {
     })
     .catch((errors) => {
       if (errors.isAxiosError) {
-        console.log(errors)
-        state.processLoading.errors = 'network';
-      } else {
-        state.processLoading.errors = 'unknown';
+        console.log(errors);
+        state.processLoading = { status: 'failed', errors: 'network' };
       }
-      state.processLoading = { status: 'failed', errors: errors.message };
+      if (errors.name === 'ParseError') {
+        state.processLoading = { status: 'failed', errors: 'invalidRSS' };
+      }
+      // state.processLoading = { status: 'failed', errors: errors.message}
       console.log(`${errors} error in catch after updatePosts`);
     });
 };
