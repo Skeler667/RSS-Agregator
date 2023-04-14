@@ -1,7 +1,8 @@
 import onChange from 'on-change';
 import clear from './cleaner.js';
 
-const renderModal = (post) => {
+const renderModal = (post, state) => {
+  console.log(state);
   const {
     id, title, description, link,
   } = post;
@@ -87,7 +88,6 @@ const renderError = (errType, elements, i18nextInstance) => {
 const handleForm = (state, elements, i18nextInstance) => {
   const { input } = elements;
   const { status, errors } = state;
-  // console.log(`FORM:\nstatus: ${status}\nerrors:${errors}`)
   switch (status) {
     case 'success': {
       clear(elements);
@@ -150,8 +150,8 @@ const watch = (state, elements, i18nextInstance) => onChange(state, (path, value
       renderVisitedPosts(state);
       break;
     }
-    case 'currentPost': {
-      renderModal(value);
+    case 'currentPostId': {
+      renderModal(value, state);
       break;
     }
     default:

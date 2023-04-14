@@ -1,4 +1,3 @@
-/* eslint no-return-assign: 0 */
 import * as yup from 'yup';
 import axios from 'axios';
 import _ from 'lodash';
@@ -8,6 +7,7 @@ import parseRSS from './parseRSS.js';
 import resources from './locales/index.js';
 
 const UPDATE_TIME = 5000;
+const TIMEOUT = 10000;
 
 const addProxy = (url) => {
   const urlWithProxy = new URL('/get', 'https://allorigins.hexlet.app');
@@ -22,51 +22,69 @@ const updatePosts = (wathcedState) => {
     return;
   }
   const urls = state.feeds.map((feed) => feed.url);
-  const promises = urls.map((url) => axios.get(addProxy(url), { timeout: UPDATE_TIME })
+  const promises = urls.map((url) => axios.get(addProxy(url), { timeout: TIMEOUT })
     .then((response) => {
       const data = parseRSS(response.data.contents);
       const oldPosts = state.posts;
       const diff = _.differenceBy(data.posts, oldPosts, 'link');
-      // eslint-disable-next-line no-return-assign
-      // eslint-disable-next-line no-param-reassign
-      diff.map((post) => post.id = _.uniqueId());
-      state.posts = diff.concat(...state.posts);
-      // state.processLoading = { status: 'success', errors: '' };
+      const diffUniqueID = diff.map((post) => post.id = _.uniqueId());
+      state.posts = diffUniqueID.concat(...state.posts);
     })
     .catch((err) => {
-      console.log(`${err}`);
       state.processLoading = { status: 'failed', errors: err };
     }));
 
   Promise.all(promises).finally(() => setTimeout(() => updatePosts(wathcedState), UPDATE_TIME));
 };
 
+const fetchErrors = (errors, state) => {
+  if (errors.isParserError) {
+    state.processLoading = { status: 'failed', errors: 'invalidRSS' };
+    return;
+  }
+  if (errors.isAxiosError) {
+    state.processLoading = { status: 'failed', errors: 'network' };
+    return;
+  }
+  state.processLoading = { status: 'failed', errors: 'unknown' };
+
+  // switch (errors) {
+  //   case 'isParserError':
+  //     state.processLoading = { status: 'failed', errors: errors.message };
+  //     console.log('ошибка в парсере')
+  //     break;
+  //   case 'isAxiosError':
+  //     state.processLoading = { status: 'failed', errors: 'network' };
+  //     console.log('ошибка в axios')
+  //     break;
+  //   default:
+  //     state.processLoading = { status: 'failed', errors: 'unknown' };
+  //     break;
+  // }
+};
+
 const fetchRSS = (url, wathcedState) => {
   const state = wathcedState;
-  state.processLoading = { status: 'loading', errors: '' };
   axios.get(addProxy(url), { timeout: 5000 })
     .then((response) => {
       const data = parseRSS(response.data.contents);
       data.feed.id = _.uniqueId();
       data.feed.url = url;
       state.feeds.unshift(data.feed);
-      /* eslint-disable max-len */
-      const posts = data.posts.map((post) => ({ ...post, channelId: data.feed.id, id: _.uniqueId() }));
+      const newPosts = data
+        .posts
+        .map((post) => ({
+          ...post,
+          channelId: data.feed.id,
+          id: _.uniqueId(),
+        }));
       state.form = { status: 'success', errors: '' };
       state.processLoading = { status: 'success', errors: '' };
 
-      state.posts = [...posts, ...state.posts];
+      state.posts = [...newPosts, ...state.posts];
     })
     .catch((errors) => {
-      if (errors.isAxiosError) {
-        console.log(errors);
-        state.processLoading = { status: 'failed', errors: 'network' };
-      }
-      if (errors.name === 'ParseError') {
-        state.processLoading = { status: 'failed', errors: 'invalidRSS' };
-      }
-      // state.processLoading = { status: 'failed', errors: errors.message}
-      console.log(`${errors} error in catch after updatePosts`);
+      fetchErrors(errors, wathcedState);
     });
 };
 
@@ -97,7 +115,7 @@ export default () => {
       errors: '',
       status: 'idle',
     },
-    currentPost: null,
+    currentPostId: null,
     visitedPostsId: new Set(),
     feeds: [],
     posts: [],
@@ -134,30 +152,22 @@ export default () => {
         .then((error) => {
           if (error) {
             wathcedState.form = { status: 'failed', errors: error.message };
-          } else {
-            fetchRSS(url, wathcedState);
+            return;
           }
+          wathcedState.processLoading = { status: 'loading', errors: '' };
+          fetchRSS(url, wathcedState);
         });
-      wathcedState.feeds = [...wathcedState.feeds];
-    });
-
-    elements.postsContainer.addEventListener('click', (e) => {
-      wathcedState.currentPost = e.target.getAttribute('data-id');
-      wathcedState.visitedPostsId.add(e.target.getAttribute('data-id'));
     });
 
     setTimeout(() => updatePosts(wathcedState), UPDATE_TIME);
 
     elements.posts.addEventListener('click', (e) => {
       if (e.target.hasAttribute('data-id')) {
-        wathcedState.currentPost = e.target.dataset.id;
+        // wathcedState.currentPostId = e.target.dataset.id;
         wathcedState.visitedPostsId.add(e.target.dataset.id);
-      }
 
-      if (e.target.tagName === 'BUTTON') {
-        const { id } = e.target.dataset;
-        wathcedState.currentPost = wathcedState.posts.find(
-          (post) => post.id === id,
+        wathcedState.currentPostId = wathcedState.posts.find(
+          (post) => post.id === e.target.dataset.id,
         );
       }
     });
