@@ -27,13 +27,12 @@ const updatePosts = (wathcedState) => {
       const data = parseRSS(response.data.contents);
       const oldPosts = state.posts;
       const diff = _.differenceBy(data.posts, oldPosts, 'link');
-      const diffUniqueID = 
-      diff
-      .map((post) => ({
-        ...post,
-        channelId: data.feed.id,
-        id: _.uniqueId(),
-      }));
+      const diffUniqueID = diff
+        .map((post) => ({
+          ...post,
+          channelId: data.feed.id,
+          id: _.uniqueId(),
+        }));
       state.posts = diffUniqueID.concat(...state.posts);
     })
     .catch((err) => {
@@ -44,29 +43,16 @@ const updatePosts = (wathcedState) => {
 };
 
 const fetchErrors = (errors, state) => {
+  const stateProcess = state;
   if (errors.isParserError) {
-    state.processLoading = { status: 'failed', errors: 'invalidRSS' };
+    stateProcess.processLoading = { status: 'failed', errors: 'invalidRSS' };
     return;
   }
   if (errors.isAxiosError) {
-    state.processLoading = { status: 'failed', errors: 'network' };
+    stateProcess.processLoading = { status: 'failed', errors: 'network' };
     return;
   }
-  state.processLoading = { status: 'failed', errors: 'unknown' };
-
-  // switch (errors) {
-  //   case 'isParserError':
-  //     state.processLoading = { status: 'failed', errors: errors.message };
-  //     console.log('ошибка в парсере')
-  //     break;
-  //   case 'isAxiosError':
-  //     state.processLoading = { status: 'failed', errors: 'network' };
-  //     console.log('ошибка в axios')
-  //     break;
-  //   default:
-  //     state.processLoading = { status: 'failed', errors: 'unknown' };
-  //     break;
-  // }
+  stateProcess.processLoading = { status: 'failed', errors: 'unknown' };
 };
 
 const fetchRSS = (url, wathcedState) => {
@@ -74,7 +60,6 @@ const fetchRSS = (url, wathcedState) => {
   axios.get(addProxy(url), { timeout: 5000 })
     .then((response) => {
       const data = parseRSS(response.data.contents);
-      console.log(data)
       data.feed.id = _.uniqueId();
       data.feed.url = url;
       state.feeds.unshift(data.feed);
@@ -88,7 +73,7 @@ const fetchRSS = (url, wathcedState) => {
       state.form = { status: 'success', errors: '' };
       state.processLoading = { status: 'success', errors: '' };
 
-      state.posts = [...newPosts, ...state.posts,];
+      state.posts = [...newPosts, ...state.posts];
     })
     .catch((errors) => {
       fetchErrors(errors, wathcedState);
@@ -165,7 +150,6 @@ export default () => {
           fetchRSS(url, wathcedState);
         });
     });
-    
 
     setTimeout(() => updatePosts(wathcedState), UPDATE_TIME);
 

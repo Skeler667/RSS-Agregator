@@ -1,8 +1,7 @@
 import onChange from 'on-change';
 import clear from './cleaner.js';
 
-const renderModal = (post, state) => {
-  console.log(state);
+const renderModal = (post) => {
   const {
     id, title, description, link,
   } = post;
@@ -77,7 +76,6 @@ const renderPosts = (posts, elements, state) => {
 };
 
 const renderError = (errType, elements, i18nextInstance) => {
-  console.log(i18nextInstance.t(errType));
   const { feedback, input } = elements;
   clear(elements);
   input.classList.add('is-invalid');
@@ -151,7 +149,7 @@ const watch = (state, elements, i18nextInstance) => onChange(state, (path, value
       break;
     }
     case 'currentPost': {
-      renderModal(value, state);
+      renderModal(value);
       break;
     }
     default:
