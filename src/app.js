@@ -27,7 +27,13 @@ const updatePosts = (wathcedState) => {
       const data = parseRSS(response.data.contents);
       const oldPosts = state.posts;
       const diff = _.differenceBy(data.posts, oldPosts, 'link');
-      const diffUniqueID = diff.map((post) => post.id = _.uniqueId());
+      const diffUniqueID = 
+      diff
+      .map((post) => ({
+        ...post,
+        channelId: data.feed.id,
+        id: _.uniqueId(),
+      }));
       state.posts = diffUniqueID.concat(...state.posts);
     })
     .catch((err) => {
@@ -68,6 +74,7 @@ const fetchRSS = (url, wathcedState) => {
   axios.get(addProxy(url), { timeout: 5000 })
     .then((response) => {
       const data = parseRSS(response.data.contents);
+      console.log(data)
       data.feed.id = _.uniqueId();
       data.feed.url = url;
       state.feeds.unshift(data.feed);
@@ -81,7 +88,7 @@ const fetchRSS = (url, wathcedState) => {
       state.form = { status: 'success', errors: '' };
       state.processLoading = { status: 'success', errors: '' };
 
-      state.posts = [...newPosts, ...state.posts];
+      state.posts = [...newPosts, ...state.posts,];
     })
     .catch((errors) => {
       fetchErrors(errors, wathcedState);
@@ -115,7 +122,7 @@ export default () => {
       errors: '',
       status: 'idle',
     },
-    currentPostId: null,
+    currentPost: null,
     visitedPostsId: new Set(),
     feeds: [],
     posts: [],
@@ -158,15 +165,14 @@ export default () => {
           fetchRSS(url, wathcedState);
         });
     });
+    
 
     setTimeout(() => updatePosts(wathcedState), UPDATE_TIME);
 
     elements.posts.addEventListener('click', (e) => {
       if (e.target.hasAttribute('data-id')) {
-        // wathcedState.currentPostId = e.target.dataset.id;
         wathcedState.visitedPostsId.add(e.target.dataset.id);
-
-        wathcedState.currentPostId = wathcedState.posts.find(
+        wathcedState.currentPost = wathcedState.posts.find(
           (post) => post.id === e.target.dataset.id,
         );
       }

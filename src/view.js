@@ -150,7 +150,7 @@ const watch = (state, elements, i18nextInstance) => onChange(state, (path, value
       renderVisitedPosts(state);
       break;
     }
-    case 'currentPostId': {
+    case 'currentPost': {
       renderModal(value, state);
       break;
     }
