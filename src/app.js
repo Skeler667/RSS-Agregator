@@ -16,9 +16,9 @@ const addProxy = (url) => {
   return urlWithProxy.toString();
 };
 
-const updatePosts = (wathcedState) => {
-  const state = wathcedState;
-  if (state.form.errors !== '') {
+const updatePosts = (state) => {
+  /* eslint-disable no-param-reassign */
+  if (state.processLoading.errors !== '') {
     return;
   }
   const urls = state.feeds.map((feed) => feed.url);
@@ -27,19 +27,20 @@ const updatePosts = (wathcedState) => {
       const data = parseRSS(response.data.contents);
       const oldPosts = state.posts;
       const diff = _.differenceBy(data.posts, oldPosts, 'link');
-      const diffUniqueID = diff
+      const diffPosts = diff
         .map((post) => ({
           ...post,
           channelId: data.feed.id,
           id: _.uniqueId(),
         }));
-      state.posts = diffUniqueID.concat(...state.posts);
+      state.posts = diffPosts.concat(...state.posts);
     })
     .catch((err) => {
       state.processLoading = { status: 'failed', errors: err };
     }));
 
-  Promise.all(promises).finally(() => setTimeout(() => updatePosts(wathcedState), UPDATE_TIME));
+  Promise.all(promises).finally(() => setTimeout(() => updatePosts(state), UPDATE_TIME));
+  /* eslint-enable no-param-reassign */
 };
 
 const fetchErrors = (errors, state) => {
