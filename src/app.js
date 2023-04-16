@@ -18,9 +18,6 @@ const addProxy = (url) => {
 
 const updatePosts = (state) => {
   /* eslint-disable no-param-reassign */
-  if (state.processLoading.errors !== '') {
-    return;
-  }
   const urls = state.feeds.map((feed) => feed.url);
   const promises = urls.map((url) => axios.get(addProxy(url), { timeout: TIMEOUT })
     .then((response) => {
