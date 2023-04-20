@@ -124,13 +124,6 @@ const handleProcess = (state, elements, i18nextInstance) => {
       input.disabled = false;
       button.disabled = false;
       break;
-    case 'loading':
-      clear(elements, i18nextInstance);
-      feedback.textContent = i18nextInstance.t('loading');
-      feedback.classList.add('text-warning');
-      input.disabled = true;
-      button.disabled = true;
-      break;
     case 'failed':
       renderError(errors, elements, i18nextInstance);
       break;

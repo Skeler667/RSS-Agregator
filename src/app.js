@@ -32,6 +32,7 @@ const updatePosts = (state) => {
       state.posts = posts.concat(...state.posts);
     })
     .catch((err) => {
+      console.log(err);
       // eslint-disable-next-line
       // state.processLoading = { status: 'failed', errors: err };
       // спустя время на статической ссылке появляется ошибка invalid RSS
@@ -53,12 +54,7 @@ const getError = (errors, state) => {
   stateProcess.processLoading = { status: 'failed', errors: 'unknown' };
 };
 
-
-
 const fetchRSS = (url, wathcedState) => {
-  // eslint-disable-next-line
-  wathcedState.processLoading = { status: 'loading', errors: '' };
-  console.log(wathcedState)
   axios.get(addProxy(url), { timeout: 5000 })
     .then((response) => {
       const data = parseRSS(response.data.contents);
@@ -73,9 +69,9 @@ const fetchRSS = (url, wathcedState) => {
           id: _.uniqueId(),
         }));
       // eslint-disable-next-line
-      wathcedState.processLoading = { status: 'success', errors: '' };
-      // eslint-disable-next-line
       wathcedState.posts = [...newPosts, ...wathcedState.posts];
+      // eslint-disable-next-line
+      wathcedState.processLoading = { status: 'success', errors: '' };
     })
     .catch((errors) => {
       getError(errors, wathcedState);
