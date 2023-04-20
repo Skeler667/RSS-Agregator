@@ -1,5 +1,17 @@
 import onChange from 'on-change';
-import clear from './cleaner.js';
+
+const clear = (elements, i18nextInstance) => {
+  const { input, feedback, button } = elements;
+  input.classList.remove('is-invalid');
+  feedback.classList.remove('text-danger');
+  feedback.classList.remove('text-success');
+  feedback.classList.remove('text-warning');
+  feedback.textContent = '';
+
+  input.disabled = false;
+  button.disabled = false;
+  button.textContent = i18nextInstance.t('add');
+};
 
 const renderModal = (post) => {
   const {
@@ -26,17 +38,17 @@ const renderVisitedPosts = (state) => {
 };
 
 const renderFeeds = (feeds, elements) => {
-  const { feedsContainer, templateFeed, templateFeedElement } = elements;
+  const { feedsContainer, feedsTemplate, feedTemplate } = elements;
 
   const feedsElements = feeds.map((feed) => {
     const { title, description } = feed;
-    const feedElement = templateFeedElement.content.cloneNode(true);
+    const feedElement = feedTemplate.content.cloneNode(true);
     feedElement.querySelector('.feed-title').textContent = title;
     feedElement.querySelector('.feed-description').textContent = description;
     return feedElement;
   });
 
-  const feedWrapper = templateFeed.content.cloneNode(true);
+  const feedWrapper = feedsTemplate.content.cloneNode(true);
   const feedList = feedWrapper.querySelector('ul');
 
   feedsContainer.innerHTML = '';
@@ -46,10 +58,10 @@ const renderFeeds = (feeds, elements) => {
 };
 
 const renderPosts = (posts, elements, state) => {
-  const { postsContainer, templatePost, templatePostElement } = elements;
+  const { postsContainer, templatePost, postsTemplate } = elements;
   const postsElements = posts.map((post) => {
     const { title, link, id } = post;
-    const postElement = templatePostElement.content.cloneNode(true);
+    const postElement = postsTemplate.content.cloneNode(true);
     const linkEl = postElement.querySelector('a');
 
     linkEl.textContent = title;
@@ -77,7 +89,7 @@ const renderPosts = (posts, elements, state) => {
 
 const renderError = (errType, elements, i18nextInstance) => {
   const { feedback, input } = elements;
-  clear(elements);
+  clear(elements, i18nextInstance);
   input.classList.add('is-invalid');
   feedback.textContent = i18nextInstance.t(errType);
   feedback.classList.add('text-danger');
@@ -88,7 +100,7 @@ const handleForm = (state, elements, i18nextInstance) => {
   const { status, errors } = state;
   switch (status) {
     case 'success': {
-      clear(elements);
+      clear(elements, i18nextInstance);
       input.value = '';
       input.focus();
       break;
@@ -109,14 +121,15 @@ const handleProcess = (state, elements, i18nextInstance) => {
       input.focus();
       feedback.textContent = i18nextInstance.t('success');
       feedback.classList.add('text-success');
+      input.disabled = false;
+      button.disabled = false;
       break;
     case 'loading':
-      clear(elements);
+      clear(elements, i18nextInstance);
       feedback.textContent = i18nextInstance.t('loading');
       feedback.classList.add('text-warning');
-      input.disabled = 'disabled';
-      button.disabled = 'disabled';
-      button.textContent = 'loading...';
+      input.disabled = true;
+      button.disabled = true;
       break;
     case 'failed':
       renderError(errors, elements, i18nextInstance);

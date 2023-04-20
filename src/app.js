@@ -17,30 +17,29 @@ const addProxy = (url) => {
 };
 
 const updatePosts = (state) => {
-  /* eslint-disable no-param-reassign */
   const urls = state.feeds.map((feed) => feed.url);
   const promises = urls.map((url) => axios.get(addProxy(url), { timeout: TIMEOUT })
     .then((response) => {
-      const data = parseRSS(response.data.contents);
       const oldPosts = state.posts;
-      const diff = _.differenceBy(data.posts, oldPosts, 'link');
-      const diffPosts = diff
+      const { posts: newPosts } = parseRSS(response.data.contents);
+      const posts = _.differenceBy(newPosts, oldPosts, 'link')
         .map((post) => ({
           ...post,
-          channelId: data.feed.id,
+          channelId: newPosts.feed.id,
           id: _.uniqueId(),
         }));
-      state.posts = diffPosts.concat(...state.posts);
+        // eslint-disable-next-line
+      state.posts = posts.concat(...state.posts);
     })
     .catch((err) => {
+      // eslint-disable-next-line
       state.processLoading = { status: 'failed', errors: err };
     }));
 
   Promise.all(promises).finally(() => setTimeout(() => updatePosts(state), UPDATE_TIME));
-  /* eslint-enable no-param-reassign */
 };
 
-const fetchErrors = (errors, state) => {
+const getError = (errors, state) => {
   const stateProcess = state;
   if (errors.isParserError) {
     stateProcess.processLoading = { status: 'failed', errors: 'invalidRSS' };
@@ -54,13 +53,14 @@ const fetchErrors = (errors, state) => {
 };
 
 const fetchRSS = (url, wathcedState) => {
-  const state = wathcedState;
+  wathcedState.processLoading = { status: 'loading', errors: '' };
+  console.log(wathcedState.processLoading)
   axios.get(addProxy(url), { timeout: 5000 })
     .then((response) => {
       const data = parseRSS(response.data.contents);
       data.feed.id = _.uniqueId();
       data.feed.url = url;
-      state.feeds.unshift(data.feed);
+      wathcedState.feeds.unshift(data.feed);
       const newPosts = data
         .posts
         .map((post) => ({
@@ -68,13 +68,13 @@ const fetchRSS = (url, wathcedState) => {
           channelId: data.feed.id,
           id: _.uniqueId(),
         }));
-      state.form = { status: 'success', errors: '' };
-      state.processLoading = { status: 'success', errors: '' };
-
-      state.posts = [...newPosts, ...state.posts];
+      // eslint-disable-next-line
+      wathcedState.processLoading = { status: 'success', errors: '' };
+      // eslint-disable-next-line
+      wathcedState.posts = [...newPosts, ...wathcedState.posts];
     })
     .catch((errors) => {
-      fetchErrors(errors, wathcedState);
+      getError(errors, wathcedState);
     });
 };
 
@@ -90,10 +90,10 @@ export default () => {
     feedsContainer: document.querySelector('.feeds'),
     postsContainer: document.querySelector('.posts'),
 
-    templateFeed: document.querySelector('#template-feeds-wrapper'),
-    templateFeedElement: document.querySelector('#template-feed-element'),
+    feedsTemplate: document.querySelector('#template-feeds-wrapper'),
+    feedTemplate: document.querySelector('#template-feed-element'),
     templatePost: document.querySelector('#template-posts-wrapper'),
-    templatePostElement: document.querySelector('#template-post-element'),
+    postsTemplate: document.querySelector('#template-post-element'),
   };
 
   const initialState = {
@@ -144,8 +144,8 @@ export default () => {
             wathcedState.form = { status: 'failed', errors: error.message };
             return;
           }
-          wathcedState.processLoading = { status: 'loading', errors: '' };
           fetchRSS(url, wathcedState);
+          wathcedState.form = { status: 'success', errors: '' };
         });
     });
 
