@@ -33,7 +33,8 @@ const updatePosts = (state) => {
     })
     .catch((err) => {
       // eslint-disable-next-line
-      state.processLoading = { status: 'failed', errors: err };
+      // state.processLoading = { status: 'failed', errors: err };
+      // спустя время на статической ссылке появляется ошибка invalid RSS
     }));
 
   Promise.all(promises).finally(() => setTimeout(() => updatePosts(state), UPDATE_TIME));
@@ -52,9 +53,12 @@ const getError = (errors, state) => {
   stateProcess.processLoading = { status: 'failed', errors: 'unknown' };
 };
 
+
+
 const fetchRSS = (url, wathcedState) => {
+  // eslint-disable-next-line
   wathcedState.processLoading = { status: 'loading', errors: '' };
-  console.log(wathcedState.processLoading)
+  console.log(wathcedState)
   axios.get(addProxy(url), { timeout: 5000 })
     .then((response) => {
       const data = parseRSS(response.data.contents);
@@ -103,7 +107,7 @@ export default () => {
     },
     processLoading: {
       errors: '',
-      status: 'idle',
+      status: 'filling',
     },
     currentPost: null,
     visitedPostsId: new Set(),
