@@ -20,13 +20,13 @@ const renderModal = (post) => {
   const modal = document.querySelector('.modal');
   const titleEl = modal.querySelector('.modal-title');
   const bodyEl = modal.querySelector('.modal-body');
-  const linkEl = modal.querySelector('.full-article');
+  const postLink = modal.querySelector('.full-article');
 
   titleEl.textContent = title;
   bodyEl.textContent = description;
 
   modal.setAttribute('data-id', id);
-  linkEl.setAttribute('href', link);
+  postLink.setAttribute('href', link);
 };
 
 const renderVisitedPosts = (state) => {
@@ -59,23 +59,21 @@ const renderFeeds = (feeds, elements) => {
 
 const renderPosts = (posts, elements, state) => {
   const { postsContainer, templatePost, postsTemplate } = elements;
-  const postsElements = posts.map((post) => {
-    const { title, link, id } = post;
-    const postElement = postsTemplate.content.cloneNode(true);
-    const linkEl = postElement.querySelector('a');
+  const postsElements = posts.map(({ title, link, id }) => {
+    const post = postsTemplate.content.cloneNode(true);
+    const postLink = post.querySelector('a');
+    postLink.textContent = title;
+    postLink.href = link;
+    postLink.setAttribute('data-id', id);
 
-    linkEl.textContent = title;
-    linkEl.href = link;
-    linkEl.setAttribute('data-id', post.id);
-
-    const btn = postElement.querySelector('button');
-    btn.setAttribute('data-id', post.id);
+    const buttonPost = post.querySelector('button');
+    buttonPost.setAttribute('data-id', id);
     if (state.visitedPostsId.has(id)) {
-      linkEl.classList.add('fw-normal', 'link-secondary');
+      postLink.classList.add('fw-normal', 'link-secondary');
     } else {
-      linkEl.classList.add('fw-bold');
+      postLink.classList.add('fw-bold');
     }
-    return postElement;
+    return post;
   });
 
   const postsWrapper = templatePost.content.cloneNode(true);

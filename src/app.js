@@ -22,6 +22,7 @@ const updatePosts = (state) => {
     .then((response) => {
       const oldPosts = state.posts;
       const { posts: newPosts } = parseRSS(response.data.contents);
+      console.log(newPosts);
       const posts = _.differenceBy(newPosts, oldPosts, 'link')
         .map((post) => ({
           ...post,
@@ -54,7 +55,9 @@ const getError = (errors, state) => {
   stateProcess.processLoading = { status: 'failed', errors: 'unknown' };
 };
 
-const fetchRSS = (url, wathcedState) => {
+const fetchRSS = (url, wathcedState, elements) => {
+  const { input } = elements;
+  input.readOnly = true;
   axios.get(addProxy(url), { timeout: 5000 })
     .then((response) => {
       const data = parseRSS(response.data.contents);
@@ -72,9 +75,11 @@ const fetchRSS = (url, wathcedState) => {
       wathcedState.posts = [...newPosts, ...wathcedState.posts];
       // eslint-disable-next-line
       wathcedState.processLoading = { status: 'success', errors: '' };
+      input.readOnly = false;
     })
     .catch((errors) => {
       getError(errors, wathcedState);
+      input.readOnly = false;
     });
 };
 
@@ -144,7 +149,7 @@ export default () => {
             wathcedState.form = { status: 'failed', errors: error.message };
             return;
           }
-          fetchRSS(url, wathcedState);
+          fetchRSS(url, wathcedState, elements);
           wathcedState.form = { status: 'success', errors: '' };
         });
     });
