@@ -29,13 +29,13 @@ const renderModal = (post) => {
   postLink.setAttribute('href', link);
 };
 
-const renderVisitedPosts = (state) => {
-  state.visitedPostsId.forEach((id) => {
-    const link = document.querySelector(`a[data-id="${id}"]`);
-    link.classList.remove('fw-normal');
-    link.classList.add('fw-normal', 'link-secondary');
-  });
-};
+// const renderVisitedPosts = (state) => {
+//   state.visitedPostsId.forEach((id) => {
+//     const link = document.querySelector(`a[data-id="${id}"]`);
+//     link.classList.remove('fw-normal');
+//     link.classList.add('fw-normal', 'link-secondary');
+//   });
+// };
 
 const renderFeeds = (feeds, elements) => {
   const { feedsContainer, feedsTemplate, feedTemplate } = elements;
@@ -57,9 +57,9 @@ const renderFeeds = (feeds, elements) => {
   feedsContainer.append(feedWrapper);
 };
 
-const renderPosts = (posts, elements, state) => {
+const renderPosts = (elements, state) => {
   const { postsContainer, templatePost, postsTemplate } = elements;
-  const postsElements = posts.map(({ title, link, id }) => {
+  const postsElements = state.posts.map(({ title, link, id }) => {
     const post = postsTemplate.content.cloneNode(true);
     const postLink = post.querySelector('a');
     postLink.textContent = title;
@@ -155,11 +155,12 @@ const watch = (state, elements, i18nextInstance) => onChange(state, (path, value
       break;
     }
     case 'posts': {
-      renderPosts(value, elements, state);
+      renderPosts(elements, state);
       break;
     }
     case 'visitedPostsId': {
-      renderVisitedPosts(state);
+      // renderVisitedPosts(state);
+      renderPosts(elements, state);
       break;
     }
     case 'currentPost': {
