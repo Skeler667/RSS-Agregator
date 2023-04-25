@@ -30,11 +30,10 @@ const updatePosts = (state) => {
         // eslint-disable-next-line
       state.posts = posts.concat(...state.posts);
     })
-    .catch((err) => {
-      console.log(err);
+    .catch((error) => {
+      console.log(error);
       // eslint-disable-next-line
-      // state.processLoading = { status: 'failed', errors: err };
-      // спустя время на статической ссылке появляется ошибка invalid RSS
+      state.processLoading = { status: 'failed', errors: error };
     }));
 
   Promise.all(promises).finally(() => setTimeout(() => updatePosts(state), UPDATE_TIME));
@@ -53,15 +52,15 @@ const getError = (errors, state) => {
   stateProcess.processLoading = { status: 'failed', errors: 'unknown' };
 };
 
-const fetchRSS = (url, wathcedState) => {
+const fetchRSS = (url, state) => {
   // eslint-disable-next-line
-  wathcedState.processLoading = { status: 'loading', errors: '' };
-  axios.get(addProxy(url), { timeout: 5000 })
+  state.processLoading = { status: 'loading', errors: '' };
+  axios.get(addProxy(url), { timeout: TIMEOUT })
     .then((response) => {
       const data = parseRSS(response.data.contents);
       data.feed.id = _.uniqueId();
       data.feed.url = url;
-      wathcedState.feeds.unshift(data.feed);
+      state.feeds.unshift(data.feed);
       const newPosts = data
         .posts
         .map((post) => ({
@@ -70,12 +69,12 @@ const fetchRSS = (url, wathcedState) => {
           id: _.uniqueId(),
         }));
       // eslint-disable-next-line
-      wathcedState.posts = [...newPosts, ...wathcedState.posts];
+      state.posts = [...newPosts, ...state.posts];
       // eslint-disable-next-line
-      wathcedState.processLoading = { status: 'success', errors: '' };
+      state.processLoading = { status: 'success', errors: '' };
     })
-    .catch((errors) => {
-      getError(errors, wathcedState);
+    .catch((error) => {
+      getError(error, state);
     });
 };
 
@@ -93,7 +92,7 @@ export default () => {
 
     feedsTemplate: document.querySelector('#template-feeds-wrapper'),
     feedTemplate: document.querySelector('#template-feed-element'),
-    templatePost: document.querySelector('#template-posts-wrapper'),
+    postTemplate: document.querySelector('#template-posts-wrapper'),
     postsTemplate: document.querySelector('#template-post-element'),
   };
 

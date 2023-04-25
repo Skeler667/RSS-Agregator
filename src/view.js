@@ -29,14 +29,6 @@ const renderModal = (post) => {
   postLink.setAttribute('href', link);
 };
 
-// const renderVisitedPosts = (state) => {
-//   state.visitedPostsId.forEach((id) => {
-//     const link = document.querySelector(`a[data-id="${id}"]`);
-//     link.classList.remove('fw-normal');
-//     link.classList.add('fw-normal', 'link-secondary');
-//   });
-// };
-
 const renderFeeds = (feeds, elements) => {
   const { feedsContainer, feedsTemplate, feedTemplate } = elements;
 
@@ -58,7 +50,7 @@ const renderFeeds = (feeds, elements) => {
 };
 
 const renderPosts = (elements, state) => {
-  const { postsContainer, templatePost, postsTemplate } = elements;
+  const { postsContainer, postTemplate, postsTemplate } = elements;
   const postsElements = state.posts.map(({ title, link, id }) => {
     const post = postsTemplate.content.cloneNode(true);
     const postLink = post.querySelector('a');
@@ -76,7 +68,7 @@ const renderPosts = (elements, state) => {
     return post;
   });
 
-  const postsWrapper = templatePost.content.cloneNode(true);
+  const postsWrapper = postTemplate.content.cloneNode(true);
   const postList = postsWrapper.querySelector('ul');
 
   postsContainer.innerHTML = '';
@@ -159,7 +151,6 @@ const watch = (state, elements, i18nextInstance) => onChange(state, (path, value
       break;
     }
     case 'visitedPostsId': {
-      // renderVisitedPosts(state);
       renderPosts(elements, state);
       break;
     }
