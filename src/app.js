@@ -39,17 +39,17 @@ const updatePosts = (state) => {
   Promise.all(promises).finally(() => setTimeout(() => updatePosts(state), UPDATE_TIME));
 };
 
-const getError = (errors, state) => {
-  const stateProcess = state;
+const getError = (errors) => {
   if (errors.isParserError) {
-    stateProcess.processLoading = { status: 'failed', errors: 'invalidRSS' };
-    return;
+    return 'invalidRSS';
   }
   if (errors.isAxiosError) {
-    stateProcess.processLoading = { status: 'failed', errors: 'network' };
-    return;
+    return 'network';
   }
-  stateProcess.processLoading = { status: 'failed', errors: 'unknown' };
+  if (errors.isTimeoutError) {
+    return 'timeout';
+  }
+  return 'unknown';
 };
 
 const fetchRSS = (url, state) => {
@@ -74,12 +74,18 @@ const fetchRSS = (url, state) => {
       state.processLoading = { status: 'success', errors: '' };
     })
     .catch((error) => {
-      getError(error, state);
+      // eslint-disable-next-line
+      state.processLoading = { status: 'failed', errors: getError(error) };
     });
 };
 
 export default () => {
   const elements = {
+    modal: document.querySelector('.modal'),
+    modalTitle: document.querySelector('.modal-title'),
+    modalBody: document.querySelector('.modal-body'),
+    modalLink: document.querySelector('.modal-link'),
+
     form: document.querySelector('.rss-form'),
     input: document.querySelector('#url-input'),
     button: document.querySelector('[aria-label="add"]'),

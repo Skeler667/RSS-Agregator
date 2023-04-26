@@ -8,6 +8,7 @@ export default {
     loading: 'Идёт загрузка RSS...',
     emptyField: 'Поле не должно быть пустым',
     mustBeValid: 'Ссылка должна быть валидным URL',
+    timeout: 'Превышено время ожидания',
     add: 'Добавить',
   },
 };

@@ -13,20 +13,20 @@ const clear = (elements, i18nextInstance) => {
   button.textContent = i18nextInstance.t('add');
 };
 
-const renderModal = (post) => {
+const renderModal = (post, elements) => {
   const {
     id, title, description, link,
   } = post;
-  const modal = document.querySelector('.modal');
-  const titleEl = modal.querySelector('.modal-title');
-  const bodyEl = modal.querySelector('.modal-body');
-  const postLink = modal.querySelector('.full-article');
 
-  titleEl.textContent = title;
-  bodyEl.textContent = description;
+  const {
+    modal, modalTitle, modalBody, modalLink,
+  } = elements;
+
+  modalTitle.textContent = title;
+  modalBody.textContent = description;
 
   modal.setAttribute('data-id', id);
-  postLink.setAttribute('href', link);
+  modalLink.setAttribute('href', link);
 };
 
 const renderFeeds = (feeds, elements) => {
@@ -155,7 +155,7 @@ const watch = (state, elements, i18nextInstance) => onChange(state, (path, value
       break;
     }
     case 'currentPost': {
-      renderModal(value);
+      renderModal(value, elements);
       break;
     }
     default:
