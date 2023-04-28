@@ -40,14 +40,14 @@ const updatePosts = (state) => {
 };
 
 const getError = (errors) => {
-  if (errors.isParserError) {
-    return 'invalidRSS';
+  if (errors.code === 'ECONNABORTED') {
+    return 'timeout';
   }
   if (errors.isAxiosError) {
     return 'network';
   }
-  if (errors.isTimeoutError) {
-    return 'timeout';
+  if (errors.isParserError) {
+    return 'invalidRSS';
   }
   return 'unknown';
 };
