@@ -27,12 +27,12 @@ const updatePosts = (state) => {
           channelId: feed.id,
           id: _.uniqueId(),
         }));
-        // eslint-disable-next-line
+        // eslint-disable-next-line no-param-reassign
       state.posts = posts.concat(...state.posts);
     })
     .catch((error) => {
       console.log(error);
-      // eslint-disable-next-line
+      // eslint-disable-next-line no-param-reassign
       state.processLoading = { status: 'failed', errors: error };
     }));
 
@@ -53,7 +53,7 @@ const getError = (errors) => {
 };
 
 const fetchRSS = (url, state) => {
-  // eslint-disable-next-line
+  // eslint-disable-next-line no-param-reassign
   state.processLoading = { status: 'loading', errors: '' };
   axios.get(addProxy(url), { timeout: TIMEOUT })
     .then((response) => {
@@ -68,13 +68,13 @@ const fetchRSS = (url, state) => {
           channelId: data.feed.id,
           id: _.uniqueId(),
         }));
-      // eslint-disable-next-line
+      // eslint-disable-next-line no-param-reassign
       state.posts = [...newPosts, ...state.posts];
-      // eslint-disable-next-line
+      // eslint-disable-next-line no-param-reassign
       state.processLoading = { status: 'success', errors: '' };
     })
     .catch((error) => {
-      // eslint-disable-next-line
+      // eslint-disable-next-line no-param-reassign
       state.processLoading = { status: 'failed', errors: getError(error) };
     });
 };

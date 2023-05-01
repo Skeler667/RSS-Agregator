@@ -6,7 +6,6 @@ export default (xml) => {
     const error = new Error();
     error.message = 'invalidRSS';
     error.isParserError = true;
-    error.isParserError = isParseError;
     throw error;
   }
   const feedTitle = doc.querySelector('title');
